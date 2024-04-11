@@ -1,0 +1,61 @@
+{% extends "../base.html" %}
+
+{% block title %}Sign in{% endblock %}
+
+{% block body %}
+{% load static %}
+    <div class="back-color-fit flex-column">
+        <div class="container from-top-100 rounded">
+            <div class="row">
+                <div class="col flex-center">
+                    <img src="{% static 'accounts/images/logo.png' %}" class="img-fluid limitted-hight">
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-3">
+                </div>
+                <div class="col-lg-6 padding-25">
+                    <h1 class="font-bold font-size-40 color-white">{{team.name}}</h1>
+
+                    <div class="from-top-25"></div>
+                    <h6 class="color-white">Members:</h6>
+                    {% if members %}
+                        {% for member in members %}
+                            <div class="row">
+                                <div class="col">
+                                    <div class="alert alert-secondary">
+                                        {{member.player.username}}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    <form method='post' action='' class="full-width from-top-25 color-white" novalidate>
+                        {% csrf_token %}
+                        {% if user_have_team %}
+                            <div class="mb-3 text-align-center"><a href="{% url 'dashboard' %}?tab=team" class="btn btn-submit center-icon-text"><span class="material-symbols-outlined">
+                                undo
+                                </span>&nbsp;Back</a></div>
+                        {% else %}
+                            <div class="mb-3">
+                                <input type='submit' value='Join' class="btn btn-submit">
+                            </div>
+                        {% endif %}
+                    </form>
+                </div>
+                <div class="col-lg-3">
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                <div class="col min-height-100"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+{% endblock %}

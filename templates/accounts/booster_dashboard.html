@@ -1,0 +1,1573 @@
+{% load static %}
+    <div class="row">
+        <div class="col disp-flex justify-content-center">
+                <div class="d-flex align-items-start column-mobile">
+
+                    <!-- Side bar -->
+                    <div class="nav flex-column nav-pills me-3 nav-l-style" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                        <button class="nav-link color-red">
+                            <div class="flex-row center-icon-text">
+                                <img src="{% if user.avatar_hash %}../../{{user.avatar_hash}}{% elif user.avatar %}{{user.avatar.url}}{% else %}{% static '../media/profile/profile-icon.png' %}{%endif %}" class="image-profile shadow-lg"> &nbsp;
+                                <h6>{% if user.nick_name %}{{user.nick_name}}{% else %}{{user.username}}{% endif %}</h6>
+                            </div>
+                        </button>
+
+
+                        <button class="nav-link center-icon-text color-white none-hover {% if not tab %}active{% endif %}" id="pills-users-tab" data-bs-toggle="pill" data-bs-target="#pills-users" type="button" role="tab" aria-controls="pills-users" aria-selected="true">
+                            <span class="material-symbols-outlined">
+                                account_circle
+                            </span>&nbsp;Accounts
+                        </button>
+
+                        {% if not is_user %}
+
+
+                        {% if has_perm_view_attendance_admin %}
+                        <button class="nav-link center-icon-text color-white none-hover {% if tab == 'new-attendance'%}active{% endif %}" id="pills-new-attendance-tab" data-bs-toggle="pill" data-bs-target="#pills-new-attendance" type="button" role="tab" aria-controls="pills-new-attendance" aria-selected="false" {% if is_user %}disabled{% endif %}>
+                            <span class="material-symbols-outlined">
+                                library_add
+                                </span>&nbsp;New Attendance
+                        </button>
+                        {% endif %}
+
+                        <button class="nav-link center-icon-text color-white none-hover position-relative {% if tab == 'team'%}active{% endif %}" id="v-pills-teams-tab" data-bs-toggle="pill" data-bs-target="#v-pills-teams" type="button" role="tab" aria-controls="v-pills-teams" aria-selected="false" {% if is_user %}disabled{% endif %}>
+                            <span class="material-symbols-outlined">
+                                groups
+                            </span>&nbsp;Team
+                            {% if team.is_leader_team %}
+                                {% if team.request_count%}
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                        {{team.request_count}}
+                                        <span class="visually-hidden">unread messages</span>
+                                    </span>
+                                {% endif %}
+                            {% endif %}
+                        </button>
+
+                        <button class="nav-link center-icon-text color-white none-hover {% if tab == 'attendance'%}active{% endif %}" id="pills-recent-match-tab" data-bs-toggle="pill" data-bs-target="#pills-recent-match" type="button" role="tab" aria-controls="pills-recent-match" aria-selected="false" {% if is_user %}disabled{% endif %}>
+                            <span class="material-symbols-outlined">
+                                joystick
+                                </span>&nbsp;Attendance
+                        </button>
+
+                        <button class="nav-link center-icon-text color-white none-hover {% if tab == 'wallet'%}active{% endif %}" id="pills-wallet-tab" data-bs-toggle="pill" data-bs-target="#pills-wallet" type="button" role="tab" aria-controls="pills-wallet" aria-selected="false" {% if is_user %}disabled{% endif %}>
+                            <span class="material-symbols-outlined">
+                                account_balance_wallet
+                                </span>&nbsp;Wallet
+                        </button>
+
+                        <button class="nav-link center-icon-text color-white none-hover {% if tab == 'loan'%}active{% endif %}" id="pills-loan-tab" data-bs-toggle="pill" data-bs-target="#pills-loan" type="button" role="tab" aria-controls="pills-loan" aria-selected="false" {% if is_user %}disabled{% endif %}>
+                            <span class="material-symbols-outlined">
+                                account_balance
+                            </span>&nbsp;Loan
+                        </button>
+                        {% endif %}
+                        <button class="nav-link center-icon-text color-white none-hover position-relative {% if tab == 'notifications' %}active{% endif %}" id="pills-notifications-tab" data-bs-toggle="pill" data-bs-target="#pills-notifications" type="button" role="tab" aria-controls="pills-notifications" aria-selected="false">
+                            <span class="material-symbols-outlined">
+                                notifications_active
+                            </span>&nbsp;Notifications
+                            {% if unseen_notif_count %}
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                {{unseen_notif_count}}
+                                <span class="visually-hidden">unread messages</span>
+                              </span>
+                            {% endif %}
+                        </button>
+
+
+                        <button class="nav-link center-icon-text color-white none-hover position-relative {% if tab == 'ticket' %}active{% endif %}" id="pills-ticket-tab" data-bs-toggle="pill" data-bs-target="#pills-ticket" type="button" role="tab" aria-controls="pills-ticket" aria-selected="false">
+                            <span class="material-symbols-outlined">
+                                mark_as_unread
+                                </span>&nbsp;Ticket
+                        </button>
+
+
+
+
+                        <a href="{%url 'logout' %}">
+                        <button class="nav-link center-icon-text pink-hover" id="v-pills-settings-tab" data-bs-toggle="pill" data-bs-target="#v-pills-settings" type="button" role="tab" aria-controls="v-pills-settings" aria-selected="false">
+                            <span class="material-symbols-outlined">
+                                logout</span>&nbsp;Exit
+                        </button>
+                        </a>
+                    </div>
+
+
+
+
+
+
+
+
+
+
+
+                    <!-- Content -->
+                    <div class="tab-content" id="v-pills-tabContent">
+                        <!-- Users Tab -->
+                        <div class="tab-pane fade {% if not tab %}show active{% endif %} dashboard-detail" id="pills-users" role="tabpanel" aria-labelledby="pills-users-tab" tabindex="0">
+                            <div class="row">
+                                <div class="col">
+                                            <div class=" dashboard-detail-item">                                        
+                                                <div class="content">
+
+                                                        <div class="row padding-25">
+
+                                                            <div class="col-lg-2">
+                                                            </div>
+
+                                                            <div class="col-lg-8 ">
+                                                                <p class="center-icon-text">
+                                                                    <span class="material-symbols-outlined">
+                                                                    badge
+                                                                    </span>&nbsp;Account Detail
+                                                                </p>
+                                                                {% if profile_form %}
+                                                                    <form method="post" action="{% url 'dashboard' %}" enctype="multipart/form-data" novalidate>
+                                                                        {% csrf_token %}
+                                                                        <div class="flex-center">
+                                                                            <img src="{% if user.avatar_hash %}../../{{user.avatar_hash}}{% elif user.avatar %}{{user.avatar.url}}{% else %}{% static '../media/profile/profile-icon.png' %}{%endif %}" class="image-profile-detail shadow-lg"> 
+                                                                        </div>
+                                                                        {{profile_form.as_div}}
+                                                                        <input type="submit" value="Update" class="btn btn-outline-light">
+                                                                    </form>
+                                                                {% else %}
+                                                                    <p class="min-height-200 center-r-c">Nothing to show</p>
+                                                                {% endif %}
+                                                            </div>
+
+                                                            <div class="col-lg-2">
+                                                            </div>
+                                                        </div>
+                                                </div>
+                                            </div>
+                                        
+                                        {% if not is_user %}
+                                        <div class="col from-top-25 dashboard-detail-item">    
+                                            <div class="content">
+
+                                                <div class="row">
+                                                    <div class="col-lg-2">
+
+                                                    </div>
+
+                                                    <div class="col-lg-8">
+                                                                <div class="padding-25">
+                                                                    <p class="center-icon-text">
+                                                                        <span class="material-symbols-outlined">
+                                                                            chess
+                                                                            </span>&nbsp;# Alts
+                                                                    </p>
+                                                                    {% if alts %}
+                                                                        <table class="table">
+                                                                            <thead>
+                                                                                <th>Remove</th>
+                                                                                <th>Name</th>
+                                                                                <th>Realm</th>
+                                                                                <th>Status</th>
+                                                                            </thead>
+                                                                        {% for alt in alts %}
+                                                                            <tr>
+                                                                                <td class="bg-transparent color-white-important">
+                                                                                    <a href="{% url 'remove_alt' alt.id %}"><span class="material-symbols-outlined">
+                                                                                    delete
+                                                                                    </span></a>
+                                                                                </td>
+                                                                                <td class="bg-transparent color-white-important"># {{alt.name}}</td>
+                                                                                <td class="bg-transparent color-white-important">{{alt.realm.name}}</td>
+                                                                                <td class="bg-transparent color-white-important">
+                                                                                    {{alt.status}}
+                                                                                </td>
+                                                                            </tr>
+                                                                        {% endfor %}
+                                                                        </table>
+                                                                    {% endif %}
+                                                                </div>
+
+                                                                <div class="padding-25">
+                                                                    <h6>Add Alt</h6>
+                                                                    <form class="from-top-25">
+                                                                        <div class="mb-3">
+                                                                            <input type="text" placeholder="name..." class="form-control" name="altname">
+                                                                        </div>
+
+                                                                        <div class="mb-3">
+                                                                            <select name="realm" class="form-control">
+                                                                                {% if realms %}
+                                                                                    {% for realm in realms%}
+                                                                                        <option value="{{realm.id}}">{{realm.name}}</option>
+                                                                                    {% endfor %}
+                                                                                {% else %}
+                                                                                    <option value="0">No realm define yet</option>
+                                                                                {% endif %}
+                                                                            </select>
+                                                                        </div>
+
+                                                                        <div class="mb-3">
+                                                                            <input type="submit" value="Add" class="btn btn-outline-light">
+                                                                        </div>
+                                                                    </form>
+                                                                </div>
+                                                    </div>
+
+                                                                <div class="col-lg-2">
+                                                                    
+                                                                </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if not is_user %}
+
+                        {% if has_perm_view_attendance_admin %}
+                        <!-- New attendance -->
+                        <div class="tab-pane {% if tab == 'new-attendance' %}show active{% endif %} fade dashboard-detail" id="pills-new-attendance" role="tabpanel" aria-labelledby="pills-new-attendance-tab" tabindex="0">
+                            <div class="row">
+                                <div class="col">
+                                    <div class="dashboard-detail-item">
+                                        <div class="flex-between">
+                                            <p class="center-icon-text">
+                                                <span class="material-symbols-outlined">
+                                                    note_stack_add
+                                                    </span>&nbsp;Attendance
+                                            </p>
+                                            <a href="{% url 'create_attendance' %}" class="btn btn-porpule color-white-important">+ New</a>
+                                        </div>
+
+                                        {% if admin_attendances %}
+                                            <div class="table-responsive">
+                                                <table class="table">
+                                                    <thead>
+                                                        <th class="bg-transparent color-white-important">Created</th>
+                                                        <th class="bg-transparent color-white-important">Status</th>
+                                                        <th class="bg-transparent color-white-important">Note</th>
+                                                        <th class="bg-transparent color-white-important">Total pot</th>
+                                                    </thead>
+                                                    <tbody>
+                                                {% for attendance in admin_attendances %}
+                                                        <tr>
+                                                            <td class="bg-transparent color-white-important"><a href="{% url 'view_attendance' attendance.id %}" class="pink-link">{{attendance.date_time|date:"Y-m-d H:i"}}</a></td>
+                                                            <td class="bg-transparent color-white-important">{{attendance.get_status_display}}</td>
+                                                            <td class="bg-transparent color-white-important">{{attendance.note}}</td>
+                                                            <td class="bg-transparent color-white-important attendance_total_pot">{{attendance.total_pot}}</td>
+                                                        </tr>
+                                                {% endfor %}
+                                                    </tbody>                                      
+                                                </table>
+                                            </div>
+
+                                        {% else %}
+                                            <p class="min-height-200 center-r-c"><span class="material-symbols-outlined color-red">
+                                            close
+                                            </span>There aren't any attendance
+                                            </p>
+                                        {% endif %}
+                                        <script>
+                                            let fields = document.getElementsByClassName('attendance_total_pot');
+                                            let value;
+
+                                            for (field of fields){
+                                                value = field.innerText;
+                                                value = value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                                                field.innerText = value;
+                                            }
+                                        </script>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+
+
+                        <!-- Teams -->
+                        <div class="tab-pane fade {% if tab == 'team'%}show active{% endif %} dashboard-detail" id="v-pills-teams" role="tabpanel" aria-labelledby="v-pills-teams-tab" tabindex="0">
+                            <div class="row">
+                                    {% if team %}
+                                        <div class="col">
+                                            
+
+                                            {% if team.team_status == 'Verified' %}
+                                                <!-- User Team -->
+                                                <div class="dashboard-detail-item">
+                                                    <p class="center-icon-text">
+                                                        <span class="material-symbols-outlined">
+                                                            group
+                                                            </span>&nbsp;{{team.detail.name}}
+                                                    </p>
+
+                                                    <div class="content">
+                                                        <div class="row">
+
+                                                            <div class="col-lg-3 dis-none-mobile"></div>
+
+                                                            <div class="col-lg-6 from-top-25">
+                                                                <table class="table align-middle">
+                                                                    <thead class="table-secondary">
+                                                                        {% if team.is_leader_team %}<th>Options</th>{% endif %}
+                                                                        <th>Members</th>
+                                                                        <th>Team Role</th>
+                                                                    </thead>
+                                                                    {% for member in team.members%}
+                                                                        <tr>
+                                                                            {% if team.is_leader_team %}
+                                                                                <td class="bg-transparent color-white-important text-align-center">
+                                                                                    {% if member.player.username != user.username %}
+                                                                                
+                                                                                        <div class="dropdown">
+                                                                                            <button class="drop-down-btn" onclick="btn_dropdown( '{{member.id}}' )">
+                                                                                                <span class="material-symbols-outlined">
+                                                                                                    more_vert
+                                                                                                    </span>
+                                                                                            </button>
+
+                                                                                            <ul class="dropdown-menu" id="dropdown-menu-{{member.id}}">
+                                                                                                <li>
+                                                                                                    <a href="{% url 'remove_team_member' team.detail.id member.id %}" class="dropdown-item center-icon-text"><span class="material-symbols-outlined">
+                                                                                                        delete
+                                                                                                        </span>&nbsp; Remove</a>
+                                                                                                </li>
+                                                                                                {% if member.team_role == 'Member' %}
+                                                                                                <li>
+                                                                                                    <a href="{% url 'position_team_member' team.detail.id member.id %}?pos=admin" class="dropdown-item center-icon-text"><span class="material-symbols-outlined">
+                                                                                                        social_leaderboard
+                                                                                                        </span>&nbsp; Promoted to admin</a>
+                                                                                                </li>
+                                                                                                {% elif member.team_role == 'Admin' %}
+                                                                                                <li>
+                                                                                                    <a href="{% url 'position_team_member' team.detail.id member.id %}?pos=leader" class="dropdown-item center-icon-text"><span class="material-symbols-outlined">
+                                                                                                        social_leaderboard
+                                                                                                        </span>&nbsp; Promoted to Leader</a>
+                                                                                                </li>
+                                                                                                <li>
+                                                                                                    <a href="{% url 'position_team_member' team.detail.id member.id %}?pos=member" class="dropdown-item center-icon-text"><span class="material-symbols-outlined">
+                                                                                                        person_4
+                                                                                                        </span>&nbsp; Demotion to Member</a>
+                                                                                                </li>
+                                                                                                {% endif %}
+                                                                                            </ul>
+                                                                                        </div>
+
+                                                                                    {% endif %}
+                                                                                </td>
+                                                                            {% endif %}
+                                                                            
+                                                                            <td class="bg-transparent color-white-important text-align-center">{{member.player.username}}</td>
+                                                                            <td class="bg-transparent color-white-important text-align-center">
+                                                                                    {{member.team_role}}
+                                                                            </td>
+                                                                        </tr>
+                                                                    {% endfor %}
+                                                                </table>
+
+                                                                <br>
+                                                                <div class="flex-between flex-column">
+                                                                    
+                                                                    <div class="center-icon-text from-top-25">
+                                                                        <span class="material-symbols-outlined">
+                                                                            link
+                                                                            </span>&nbsp;Address: &nbsp;<span class="badge bg-dark">{{team.detail.team_url}}</span>
+                                                                    </div>
+
+                                                                    <a href="{% url 'left_the_team' team_pk=team.detail.id %}" class="btn btn-danger center-icon-text color-white-important from-top-15">
+                                                                        <span class="material-symbols-outlined">
+                                                                            door_back
+                                                                            </span>&nbsp;Left the team
+                                                                    </a>
+                                                                </div>
+                                                                <br>
+                                                            </div>
+
+                                                            <div class="col-lg-3 dis-none-mobile"></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+
+                                            <!-- if team was not verified -->
+                                            {% else %}
+                                                <div class="row">
+                                                    <div class="col">
+                                                        <p class="min-height-200 center-r-c dashboard-detail-item"><span class="material-symbols-outlined color-red">
+                                                            close
+                                                            </span>Your team has not yet been approved by the admin</p>
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+
+                                            <!-- All teams -->
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    {% if teams %}
+                                                            <div class="dashboard-detail-item from-top-25">
+                                                                <p class="center-icon-text">
+                                                                    <span class="material-symbols-outlined">
+                                                                        groups_2
+                                                                        </span>&nbsp;Teams
+                                                                </p>
+                                                                <div class="row">
+                                                                    <div class="col">
+                                                                    {% for team in teams %}
+                                                                        <a href="{% url 'team_detail' team.id %}">
+                                                                            <div class="alert alert-dark rounded flex-between align-center shadow-lg shadow-none-hover">
+                                                                                <img src="{% static 'accounts/images/team.png' %}" class="img-icon"> {{team.name}}
+                                                                            </div>
+                                                                        </a>
+                                                                    {% endfor %}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                    {% else %}
+                                                        <div class="dashboard-detail-item from-top-25"> 
+                                                            <p class="min-height-200 center-r-c">There aren't any team</p>
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+
+
+                                                <!-- New request to join team -->
+                                                {% if team.is_leader_team %}
+                                                            <div class="col-md-6">
+                                                                <div class="dashboard-detail-item from-top-25">
+                                                                    <p class="center-icon-text">
+                                                                        <span class="material-symbols-outlined">
+                                                                            group_add
+                                                                            </span>&nbsp;New request
+                                                                    </p>
+
+                                                                    <div class="content">
+                                                                        <div class="row">
+                                                                            <div class="col from-top-25">
+                                                                                {% if team.new_requests %}
+                                                                                        {% for request in team.new_requests%}
+                                                                                            <div class="row">
+                                                                                                <div class="col-3 color-white-important center-icon-text">
+                                                                                                        <span class="material-symbols-outlined">
+                                                                                                            person
+                                                                                                            </span> &nbsp;{{request.player}}
+                                                                                                </div>
+
+                                                                                                <div class="col-9">
+                                                                                                    <form method="post" action="{% url 'join_team_response' %}" class="row row-cols-lg-auto g-3 align-items-center margin-bottom-less">
+                                                                                                        {% csrf_token %}
+                                                                                                        <input type="hidden" name="username" value="{{request.player}}">
+                                                                                                        <input type="hidden" name="team" value="{{team.detail.id}}">
+
+
+                                                                                                            <div class="form-check form-check-inline">
+                                                                                                                <input class="form-check-input padding-5" type="radio" name="response" id="inlineRadio1" value="accept" checked>
+                                                                                                                <label class="form-check-label margin-bottom-0" for="inlineRadio1">Accept</label>
+                                                                                                            </div>
+
+                                                                                                            <div class="form-check form-check-inline">
+                                                                                                                <input class="form-check-input padding-5" type="radio" name="response" id="inlineRadio1" value="reject">
+                                                                                                                <label class="form-check-label margin-bottom-0" for="inlineRadio1">Reject</label>
+                                                                                                            </div>
+
+                                                                                                            <div class="form-check form-check-inline">
+                                                                                                                <input type="submit" value="Submit" class="btn btn-submit margin-top-16">
+                                                                                                            </div>
+                                                                                                    </form>
+                                                                                                </div>
+                                                                                                
+                                                                                            </div>
+                                                                                            <hr>
+                                                                                        {% endfor %}
+                                                                                {% else %}
+                                                                                    <p class="min-height-200 center-r-c"><span class="material-symbols-outlined color-red">
+                                                                                        close
+                                                                                        </span> There is no request</p>
+                                                                                {% endif %}
+                                                                            </div>
+                                                                        </div>
+
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                {% endif %}
+                                            </div>
+
+                                            <!-- Boosters -->
+                                            {% if team.is_leader_team %}
+                                            <div class="row">
+                                                <div class="col">
+                                                    {% if team.boosters %}
+                                                            <div class="dashboard-detail-item from-top-25">
+                                                                <div class="flex-between">
+                                                                    <div class="center-icon-text">
+                                                                        <span class="material-symbols-outlined">
+                                                                            person_search
+                                                                            </span>&nbsp;Boosters
+                                                                    </div>
+                                                                    <div>
+                                                                        
+                                                                    </div>
+                                                                </div>
+                                                                <div class="row">
+                                                                    <div class="col">
+                                                                        <form method="post" action="{% url 'invite_member' team.detail.id %}">
+                                                                        {% csrf_token %}
+                                                                            <div class="row">
+                                                                        {% for booster in team.boosters %}
+                                                                            <div class="col-md-4 from-top-15">
+                                                                                <div class="alert alert-dark rounded flex-between align-center shadow-lg shadow-none-hover border-left-porpule">
+                                                                                    <div class="flex-row margin-bottom-less">
+                                                                                        <input class="form-check-input margin-bottom-less padding-5 border-porpule booster-selected-checkbox" type="checkbox" value="{{booster.id}}" name="user_{{booster.id}}">&nbsp;
+                                                                                        <h6 class="center-icon-text margin-bottom-less"><span class="material-symbols-outlined">
+                                                                                                person_4
+                                                                                                </span>&nbsp;{{booster.username}}
+                                                                                        </h6>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        {% endfor %}
+                                                                            </div>
+                                                                            <button  type="submit" class="btn btn-porpule-solid color-white-important center-icon-text" id="inviteSellectedUserBtn"><span class="material-symbols-outlined">
+                                                                                link
+                                                                                </span>&nbsp;Invite selected users
+                                                                            </button>
+                                                                        </form>
+                                                                    </div>
+
+                                                                    <!-- If user was selected -->
+                                                                    <script>
+                                                                        var checkboxes = document.getElementsByClassName("booster-selected-checkbox");
+                                                                        var invitebtn = document.getElementById('inviteSellectedUserBtn');
+                                                                        invitebtn.style.display = 'none';
+                                                                        for (checkbox of checkboxes){
+                                                                            checkbox.addEventListener('change', function() {
+                                                                                var flag = false;
+                                                                                if (this.checked) {
+                                                                                    var elements = document.getElementsByClassName("price-listener");
+                                                                                    invitebtn.style.display = 'flex';
+                                                                                }else{
+                                                                                    for (checkbox of checkboxes){
+                                                                                        if (checkbox.checked){
+                                                                                            flag = true;
+                                                                                            break;
+                                                                                        }
+                                                                                    }
+                                                                                    if (flag == false){
+                                                                                        invitebtn.style.display = 'none';
+                                                                                    }
+                                                                                }
+                                                                            });
+                                                                        }                                                                        
+                                                                    </script>
+
+
+                                                                </div>
+                                                            </div>
+                                                    {% else %}
+                                                        <div class="dashboard-detail-item from-top-25"> 
+                                                            <p class="min-height-200 center-r-c">There aren't any boosters</p>
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            {% endif %}
+
+                                        </div>
+                                    {% else %}
+                                    <!-- Create Team -->
+                                            <div class="col-sm-6">
+                                                <div class="dashboard-detail-item">
+                                                    <p class="center-icon-text">
+                                                        <span class="material-symbols-outlined">
+                                                            group_add
+                                                            </span>&nbsp;Create Team
+                                                    </p>
+
+                                                    <div class="row">                                                            
+                                                            <div class="col padding-25">
+                                                            <form method="post" action="{% url 'create_team' %}">
+                                                                {% csrf_token %}
+                                                                {{ create_team_form.as_div }}
+                                                                <input type="submit" value="Create" class="btn btn-submit color-white">
+                                                            </form>
+                                                            </div>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+
+
+                                            <!-- All teams -->
+                                            <div class="col-sm-6">
+                                                {% if teams %}
+                                                        <div class="dashboard-detail-item">
+                                                            <p class="center-icon-text">
+                                                                <span class="material-symbols-outlined">
+                                                                    groups_2
+                                                                    </span>&nbsp;Teams
+                                                            </p>
+                                                            <div class="row">
+                                                                <div class="col">
+                                                                {% for team in teams %}
+                                                                    <a href="{% url 'team_detail' team.name team.id %}">
+                                                                        <div class="alert alert-dark rounded flex-between align-center shadow-lg shadow-none-hover">
+                                                                            <img src="{% static 'accounts/images/team.png' %}" class="img-icon"> {{team.name}}
+                                                                        </div>
+                                                                    </a>
+                                                                {% endfor %}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                {% else %}
+                                                    <div class="dashboard-detail-item"> 
+                                                        <p class="min-height-200 center-r-c">There aren't any team</p>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                    {% endif %}
+                            </div>
+                        </div>
+                  
+                  
+                        <!-- Attendance -->
+                        <div class="tab-pane fade dashboard-detail {% if tab == 'attendance'%}show active{% endif %}" id="pills-recent-match" role="tabpanel" aria-labelledby="pills-recent-match-tab" tabindex="0">
+                            <div class="row ">
+                                <div class="col">
+
+                                    <div class="row">
+                                        <div class="col">
+                                            <div class="dashboard-detail-item without-min-height">
+                                                <div class="form-check form-switch margin-bottom-less">
+                                                    <input class="form-check-input currenciesSwitch" type="checkbox" role="switch" id="currenciesSwitch">
+                                                    <label class="form-check-label margin-bottom-less" for="currenciesSwitch">IR</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                        <!-- Active cycle -->
+                                        <div class="dashboard-detail-item from-top-25">
+                                            <p class="center-icon-text">
+                                                <span class="material-symbols-outlined">
+                                                    stadia_controller
+                                                    </span>&nbsp;Active Cycle
+                                            </p>
+    
+                                            <div class="content padding-15">
+                                                {% if matches.active_cycle %}
+                                                    <table class="table">
+                                                        <thead>
+                                                            <th class="bg-transparent color-white-important">Date time</th>
+                                                            <th class="bg-transparent color-white-important">Role</th>
+                                                            <th class="bg-transparent color-white-important">Missing Boss</th>
+                                                            <th class="bg-transparent color-white-important">cut</th>
+                                                            <th class="bg-transparent color-white-important">Payment character</th>
+                                                        </thead>
+                                                        {% for match in matches.active_cycle %}
+                                                            <tr>
+                                                                <td class="bg-transparent color-white-important">{{match.attendane.date_time|date:"Y-m-d H:i" }}</td>
+                                                                <td class="bg-transparent color-white-important">{{match.role}}</td>
+                                                                <td class="bg-transparent color-white-important">
+                                                                    {{match.missing_boss}}
+                                                                </td>
+                                                                <td class="bg-transparent color-white-important price-listener">{% if match.cut >= 1000 %}{% widthratio match.cut 1000 1 %} K{% else %}{{match.cut}}{% endif %}</td>
+                                                                <td class="bg-transparent color-white-important">
+                                                                    <form method="get" class="row">
+                                                                        <div class="col col-9">
+                                                                            <select name="payment_character" id="payment_character_{{match.id}}" class="payment_character">
+                                                                                <option value="0">Alt</option>
+                                                                                {% for alt in alts%}
+                                                                                <option value="{{alt.id}}">
+                                                                                    {{alt.name}}
+                                                                                </option>
+                                                                                {% endfor %}
+                                                                            </select>
+                                                                            <input type="hidden" value="{{match.id}}" name="at_pk">
+                                                                        </div>
+
+
+                                                                        <div class="col col-3">
+                                                                            <input type="submit" value="Go" class="btn btn-porpule color-white-important">
+                                                                        </div>
+                                                                    </form>
+                                                                </td>
+                                                            </tr>
+                                                        {% endfor %}
+                                                    </table>
+                                                {% else %}
+                                                    <p class="min-height-200 center-r-c">Do not have started attendance yet</p>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+
+
+                                        <script>
+                                            pay_chars = document.getElementsByClassName("payment_character");
+
+                                            for (item of pay_chars){
+                                                let id = item.getAttribute('id');
+                                                id = id.split('_')[2];
+
+                                                pay_select = document.getElementById('payment_character_' + id);
+                                                {% for match in matches.active_cycle %}
+                                                    if ( "{{match.id}}" == id){
+                                                        {% if match.payment_character %}
+                                                            pay_select.value = "{{match.payment_character.id}}";
+                                                        {% endif %}
+                                                    }
+                                                {% endfor %}
+                                            }
+                                        </script>
+
+                                        <!-- History -->
+                                        <div class="dashboard-detail-item from-top-25">
+                                            <p class="center-icon-text">
+                                                <span class="material-symbols-outlined">
+                                                    history
+                                                    </span>&nbsp;History
+                                            </p>
+    
+                                            <div class="content padding-15">
+                                                {% if matches.closed_cycle %}
+                                                    <table class="table">
+                                                        <thead>
+                                                            <th class="bg-transparent color-white-important">Date time</th>
+                                                            <th class="bg-transparent color-white-important">Role</th>
+                                                            <th class="bg-transparent color-white-important">Missing Boss</th>
+                                                            <th class="bg-transparent color-white-important">cut</th>
+                                                            <th class="bg-transparent color-white-important">Payment character</th>
+
+                                                        </thead>
+                                                        {% for match in matches.closed_cycle %}
+                                                            <tr>
+                                                                <td class="bg-transparent color-white-important">{{ match.attendane.date_time|date:"Y-m-d H:i" }}</td>
+                                                                <td class="bg-transparent color-white-important">{{match.role}}</td>
+                                                                <td class="bg-transparent color-white-important">{{match.missing_boss}}</td>
+                                                                <td class="bg-transparent color-white-important price-listener">{% if match.cut >= 1000 %}{% widthratio match.cut 1000 1 %} K{% else %}{{match.cut}}{% endif %}</td>
+                                                                <td class="bg-transparent color-white-important">{{match.payment_character}}</td>
+                                                            </tr>
+                                                        {% endfor %}
+                                                    </table>
+                                                {% else %}
+                                                    <p class="min-height-200 center-r-c">Do not have a finished match yet</p>
+                                                {% endif %}
+                                            </div>
+                                        </div>  
+                                </div>
+                            </div>
+                        </div>
+                  
+                  
+                  
+                        <!-- Wallet -->
+                        <div class="tab-pane fade {% if tab == 'wallet'%}show active{% endif %} dashboard-detail" id="pills-wallet" role="tabpanel" aria-labelledby="pills-wallet-tab" tabindex="0">
+                            <div class="row">
+                                    <div class="col">
+
+
+                                            <!-- Payment Request -->
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="dashboard-detail-item">
+                                                        <p class="center-icon-text">
+                                                            <span class="material-symbols-outlined">
+                                                                add_card
+                                                                </span>&nbsp;Payment request
+                                                        </p>
+                                                        <hr>
+
+                                                        <div class="content">
+                                                            <form method="post" action="{% url 'asking_money' %}" onsubmit="return confirm('Do you really want to send the form?');">
+                                                                {% csrf_token %}
+
+                                                                <div class="mb-3">
+                                                                    <select name='alt' id="select-alt">
+                                                                        <option value="0">Alts</option>
+                                                                        {% if verified_alts %}
+                                                                            {% for alt in verified_alts %}
+                                                                                <option value="{{alt.id}}">{{alt.name}},{{alt.realm.name}}</option>
+                                                                            {% endfor %}
+                                                                        {% endif %}
+                                                                    </select>
+
+                                                                    {% if card_detail.cards %}
+                                                                    <select name='card' class="display-none" id="select-card">
+                                                                        <option value="0">Card</option>
+                                                                            {% for card in card_detail.cards %}
+                                                                                <option value="{{card.id}}">{{card.split_show_card}}</option>
+                                                                            {% endfor %}
+                                                                    </select>
+                                                                    {% endif %}
+                                                                </div>
+
+                                                                <label class="form-label">Amount</label>
+                                                                <input type="number" placeholder="units per 'K'" name="asking_money_amount">
+
+                                                                <div class="mb-3 from-top-15">
+                                                                    <label for="payment-request-type" class="form-label">Payment method</label>
+                                                                    <select name="asking_money_type" id="payment-request-type" class="form-select" onchange="payment_request_method()">
+                                                                        <option value="CUT" selected>Cut</option>
+                                                                        <option value="IR">IR</option>
+                                                                    </select>
+                                                                </div>
+                                                                <div class="mb-3">
+                                                                    <input type="submit" value="Send" class="btn btn-porpule color-white">
+                                                                </div>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Payment method: active and deactive two Select element -->
+                                                <script>
+                                                    function payment_request_method() {
+                                                        method = document.getElementById("payment-request-type").value;
+                                                        if (method == 'IR'){
+                                                            document.getElementById('select-alt').style.display = 'none';
+                                                            document.getElementById('select-card').style.display = 'block';
+                                                        } else if (method == 'CUT'){
+                                                            document.getElementById('select-alt').style.display = 'block';
+                                                            document.getElementById('select-card').style.display = 'none';
+                                                        }
+                                                    }
+                                                </script>
+
+                                                <!-- Financial Reports -->
+                                                <div class="col-md-6 from-top-25-mobile">
+                                                    <div class="dashboard-detail-item">
+                                                        <div class="flex-between">
+                                                            <div class="center-icon-text">
+                                                                <span class="material-symbols-outlined">
+                                                                    query_stats
+                                                                    </span>&nbsp;Report
+                                                            </div>
+                                                            <div>
+                                                                <div class="form-check form-switch margin-bottom-less">
+                                                                    <input class="form-check-input" type="checkbox" role="switch" id="currenciesSwitch2">
+                                                                    <label class="form-check-label margin-bottom-less" for="currenciesSwitch2">IR</label>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <hr>
+                                                        <div class="content">
+                                                            {% if wallet_report %}
+                                                                <div class="flex-between alert alert-warning">
+                                                                    <div class="center-icon-text"><img src="{% static 'accounts/images/gold.png' %}" class="img-icon">&nbsp;Wallet Balance:</div>
+                                                                    <div class="price-listener-2">{{wallet_report.amount}}</div>
+                                                                </div>
+
+                                                                <div class="flex-between alert">
+                                                                    <div class="center-icon-text"><span class="material-symbols-outlined">
+                                                                        looks_one
+                                                                        </span>&nbsp;Today's Income:</div>
+                                                                    <div class="price-listener-2">{{wallet_report.todays_income}}</div>
+                                                                </div>
+
+                                                                <div class="flex-between alert">
+                                                                    <div class="center-icon-text"><span class="material-symbols-outlined">
+                                                                        counter_7
+                                                                        </span>&nbsp;Income this week:</div>
+                                                                    <div class="price-listener-2">{{wallet_report.toweek_income}}</div>
+                                                                </div>
+
+                                                                <div class="flex-between alert">
+                                                                    <div class="center-icon-text"><span class="material-symbols-outlined">
+                                                                        calendar_month
+                                                                        </span>&nbsp;Income this month:</div>
+                                                                    <div class="price-listener-2">{{wallet_report.tomonth_income}}</div>
+                                                                </div>
+                                                            {% else %}
+                                                                <p class="min-height-200 center-r-c"><span class="material-symbols-outlined color-red">
+                                                                    close
+                                                                    </span> there aren't any reports</p>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- exchange price -->
+                                            <script>
+                                                var checkbox = document.getElementById("currenciesSwitch");
+                                                var checkbox2 = document.getElementById("currenciesSwitch2");
+
+                                                checkbox.addEventListener('change', function() {
+                                                if (this.checked) {
+                                                    var elements = document.getElementsByClassName("price-listener");
+                                                    for (element of elements){
+                                                        var before = element.innerText.split(" ");
+                                                        element.innerText = before[0]{% if cut_per_ir %} * {{cut_per_ir}}{% endif %};
+                                                        if (element.innerText != "0" ){
+                                                            {% if cut_per_ir %}
+                                                                element.innerText += " T";
+                                                            {% else %}
+                                                                element.innerText += ' K';
+                                                            {% endif %}
+                                                        }
+                                                    }
+                                                } else {
+                                                    var elements = document.getElementsByClassName("price-listener");
+                                                    for (element of elements){
+                                                        var before = element.innerText.split(" ");
+                                                        element.innerText = before[0]{% if cut_per_ir %} / {{cut_per_ir}}{% endif %};
+                                                        if (element.innerText != "0"){
+                                                            element.innerText += " K"
+                                                        }
+                                                    }
+                                                }
+                                                });
+
+
+                                                checkbox2.addEventListener('change', function() {
+                                                    if (this.checked) {
+                                                        var elements = document.getElementsByClassName("price-listener-2");
+                                                        for (element of elements){
+                                                            var before = element.innerText.split(" ");
+                                                            element.innerText = before[0]{% if cut_per_ir %} * {{cut_per_ir}}{% endif %};
+                                                            if (element.innerText != "0" ){
+                                                                {% if cut_per_ir %}
+                                                                    element.innerText += " T";
+                                                                {% else %}
+                                                                    element.innerText += ' K';
+                                                                {% endif %}
+                                                            }
+                                                        }
+                                                    } else {
+                                                        var elements = document.getElementsByClassName("price-listener-2");
+                                                        for (element of elements){
+                                                            var before = element.innerText.split(" ");
+                                                            element.innerText = before[0]{% if cut_per_ir %} / {{cut_per_ir}}{% endif %};
+                                                            if (element.innerText != "0"){
+                                                                element.innerText += " K"
+                                                            }
+                                                        }
+                                                    }
+                                                    });
+                                            </script>
+                                            
+
+                                        <!-- Transaction -->
+                                            <div class="row">
+                                                <div class="col from-top-25">
+                                                    <div class="dashboard-detail-item">
+                                                        <p class="center-icon-text">
+                                                            <span class="material-symbols-outlined">
+                                                                history
+                                                                </span>&nbsp;Transaction History
+                                                        </p>
+                                                        
+                                                        {% if transactions %}
+                                                            <div class="table-responsive" style="overflow-x: auto !important;">
+                                                                <table class="table">
+                                                                    <thead>
+                                                                        <th class="">Status</th>
+                                                                        <th class="">Date of request</th>
+                                                                        <th class="">details</th>
+                                                                        <th class="">Paid date</th>
+                                                                        <th class="">Currency</th>
+                                                                        <th class="">Amount</th>
+                                                                    </thead>
+                                                                    {% for ts in transactions %}
+                                                                        <tr>
+                                                                            <td class="{% if ts.status == 'PAID' %}bg-green{% endif %}">{{ts.status}}</td>
+                                                                            <td class="{% if ts.status == 'PAID' %}bg-green{% endif %}">{{ts.created|date:"Y-m-d H:i" }}</td>
+                                                                            <td class="{% if ts.status == 'PAID' %}bg-green{% endif %}">{% if ts.caption %}{{ts.caption}}{% endif %}</td>
+                                                                            <td class="{% if ts.status == 'PAID' %}bg-green{% endif %}">{{ts.paid_date|date:"Y-m-d H:i" }}</td>
+                                                                            <td class="{% if ts.status == 'PAID' %}bg-green{% endif %}">{{ts.currency}}</td>
+                                                                            <td class="{% if ts.status == 'PAID' %}bg-green{% endif %}">
+                                                                                {% if ts.currency == 'CUT' %}&nbsp;{% if ts.amount >= 1000 %}{% widthratio ts.amount 1000 1 %} K{% else %}{{ts.amount}}{% endif %}
+                                                                                {% else %}
+                                                                                T&nbsp;{{ts.amount}}
+                                                                                {% endif %}
+                                                                            </td>
+                                                                        </tr>
+                                                                    {% endfor %}
+                                                                </table>
+                                                            </div>
+                                                        {% else %}
+                                                            <div class="content">
+                                                                <p class="min-height-200 center-r-c">there aren't any transaction</p>
+                                                            </div>
+                                                        {% endif %}
+                                                    </div>
+                                                </div> 
+                                            </div>    
+
+
+                                            <div class="row">
+                                                <!-- Wallet Detail -->
+                                                <div class="col-lg-6 from-top-25">
+                                                    <div class="dashboard-detail-item">
+                                                        <div class="flex-between">
+                                                                <div class="center-icon-text"><img src="{% static 'accounts/images/newcard.png' %}" class="img-icon">&nbsp;Payment Card
+                                                                </div>
+
+                                                                <div>
+                                                                    <button type="button" class="btn btn-porpule color-white center-icon-text" id="create-bank-card" data-bs-toggle="modal" data-bs-target="#createBankCardModal">
+                                                                        <span class="material-symbols-outlined">
+                                                                            credit_card
+                                                                            </span>&nbsp; New +
+                                                                    </button>
+                                                                </div>
+                                                        </div>
+
+                                                        {% if card_detail.cards %}
+                                                            {% for card in card_detail.cards %}
+                                                                    <div class="alert alert-dark from-top-25">
+                                                                        <strong class="flex-center">{{card.split_show_card}}</strong>
+                                                                        <p class="flex-center">IR {{card.split_show_shaba}}</p>
+                                                                        <div class="flex-between">
+                                                                            <div><a href="{% url 'delete_bank_card' card.id %}"><span class="material-symbols-outlined color-red-important">
+                                                                                delete
+                                                                                </span></a></div>
+                                                                            <div>{{card.full_name}}</div>
+                                                                        </div>
+                                                                    </div>
+                                                            {% endfor %}
+                                                        {% else %}
+                                                                <p class="min-height-200 center-r-c">No card has been registered yet</p>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+
+
+                                                <!-- Currency Exchange -->
+                                                <div class="col-lg-6 from-top-25">
+                                                    <div class="dashboard-detail-item">
+                                                        <p class="center-icon-text">
+                                                            <span class="material-symbols-outlined">
+                                                                currency_exchange
+                                                                </span>&nbsp; Currency Exchange
+                                                        </p>
+                                                        <hr>
+                                                        <div>
+                                                            <form>
+                                                                <input type="number" name="currency_exchange" id="currency_exchange" placeholder="units per 'K'" class="form-control">
+                                                                <input type="hidden" id="cut_in_ir_price" value="{% if cut_per_ir %}{{cut_per_ir}}{% else %}0{% endif %}" name="cut_in_ir_price">
+                                                            </form>
+                                                            <div class="from-top-15">
+                                                                <button type="button" class="btn btn-porpule color-white full-width" id="btn-click-calc" data-bs-toggle="modal" data-bs-target="#calculaterModal">
+                                                                    Calculate
+                                                                </button>
+                                                            </div>
+                                                            <div class="flex-between alert">
+                                                                <div>1K Cut to IR:</div>
+                                                                <div>{% if cut_per_ir %}$ {{cut_per_ir}}{% else %}Not define{% endif %}</div>
+                                                            </div>
+    
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                            
+                                    </div>
+                    
+                            </div>
+                        </div>
+
+
+
+
+                        <!-- Loan -->
+                        <div class="tab-pane {% if tab == 'loan' %}show active{% endif %} fade dashboard-detail" id="pills-loan" role="tabpanel" aria-labelledby="pills-loan-tab" tabindex="0">
+                            <div class="row">
+                                    <div class="col">
+
+
+                                        <div class="row">
+                                            {% if not debts %}
+                                            <div class="col">
+                                                <div class="dashboard-detail-item">
+                                                        <!-- Loan Request -->
+                                                        <div class="row">
+                                                            <div class="col-12">
+                                                                <p class="center-icon-text">
+                                                                    <span class="material-symbols-outlined">
+                                                                        account_balance
+                                                                    </span>&nbsp;Get loan
+                                                                </p>
+                                                                <hr>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="content">
+                                                        <div class="alert">
+                                                                <form method="post" action="{% url 'loan_application' %}" onsubmit="return confirm('Do you really want to send the form?');">
+                                                                    {% csrf_token %}
+                                                                    <div class="mb-3">
+                                                                        <select name='alt'>
+                                                                            <option value="0">--- Your alts ---</option>
+                                                                            {% if verified_alts %}
+                                                                                {% for alt in verified_alts %}
+                                                                                    <option value="{{alt.id}}">{{alt.name}},{{alt.realm.name}}</option>
+                                                                                {% endfor %}
+                                                                            {% endif %}
+                                                                        </select>
+                                                                    </div>
+                                                                    {{loan_form.as_div}}
+                                                                    <input type="submit" value="submit" class="btn btn-porpule color-white-important">
+                                                                </form>
+                                                            </div>    
+                                                        </div>
+                                                </div>
+                                            </div>
+
+
+                                            {% else %}
+                                            <div class="col-md-6">
+                                                <div class="dashboard-detail-item">
+                                                    <!-- Debt -->
+                                                    <div class="row">
+                                                        <div class="col-12">
+                                                            <p class="center-icon-text">
+                                                                <span class="material-symbols-outlined">
+                                                                    add_chart
+                                                                </span>&nbsp;Debt
+                                                            </p>
+                                                            <hr>
+                                                        </div>
+
+                                                        <div class="content">
+                                                                    <div class="alert alert-dark flex-between">
+                                                                        <div>Date received:</div>
+                                                                        <div>{% if debts %}{{debts.loan.created_at|date:"Y-m-d H:i"}}{% else %}#-#-# *:*{% endif %}</div>
+                                                                    </div>
+
+                                                                    <div class="alert alert-dark flex-between">
+                                                                        <div>Alt:</div>
+                                                                        <div>{% if debts %}{{debts.loan.alt}}{% else %}{% endif %}</div>
+                                                                    </div>
+
+
+                                                                    <div class="alert alert-warning flex-between">
+                                                                        <div>Amount:</div>
+                                                                        <div>{% if debts %}{{debts.debt_amount}} K{% else %}0{% endif %}</div>
+                                                                    </div>
+                                                                    
+                                                                    <button type="button" class="btn btn-porpule color-white full-width center-icon-text" id="btn-payment-loan" data-bs-toggle="modal" data-bs-target="#paymentLoan">
+                                                                        <img src="{% static 'accounts/images/wallet.png' %}" class="img-icon">&nbsp;Payment the debt
+                                                                    </button>                                                                  
+                                                        </div>
+
+
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+
+
+                                            <div class="col-md-6">
+                                                <div class="dashboard-detail-item">
+                                                    <!-- History -->
+                                                    <div class="row">
+                                                        <div class="col-12">
+                                                            <p class="center-icon-text">
+                                                                <span class="material-symbols-outlined">
+                                                                    real_estate_agent
+                                                                </span>&nbsp;Loans taken
+                                                            </p>
+                                                        </div>
+
+                                                        <div class="content">
+                                                            {% if loan_history %}
+                                                                <table class="table">
+                                                                    <thead class="table-light">
+                                                                        <th>Request Date</th>
+                                                                        <th>Loan Amount</th>
+                                                                        <th>Status</th>
+                                                                    </thead>
+                                                                {% for lh in loan_history %}
+                                                                    <tr>
+                                                                        <td class="bg-transparent color-white-important">
+                                                                            {{lh.created_at|date:"Y-m-d H:i"}}
+                                                                        </td>
+                                                                        <td class="bg-transparent color-white-important">{{lh.amount}} K</td>
+                                                                        <td class="bg-transparent color-white-important">{{lh.loan_status}}</td>
+                                                                    </tr>
+                                                                {% endfor %}
+                                                                </table>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+
+                                        </div>
+                                    </div>
+                            </div>
+                        </div>
+
+
+
+
+
+
+
+
+
+                        {% endif %}
+
+                        <!-- Notifications -->
+                        <div class="tab-pane {% if tab == 'notifications' %}show active{% endif %} fade dashboard-detail" id="pills-notifications" role="tabpanel" aria-labelledby="pills-notifications-tab" tabindex="0">
+                            <div class="row">
+                                    <div class="col">
+                                            <div class="dashboard-detail-item">
+                                                    <!-- Unread notifications -->
+                                                    <div class="row">
+                                                        <div class="col-12">
+                                                            <p class="center-icon-text">
+                                                                <span class="material-symbols-outlined">
+                                                                thread_unread
+                                                                </span>&nbsp;Unreed Notifications
+                                                            </p>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="row">
+                                                        <div class="col-12">
+                                                            <div class="content">
+
+                                                                <!-- Delete alt request -->
+                                                                {% if remove_alt_request %}
+                                                                {% for rar in remove_alt_request %}
+                                                                    <div class="alert alert-dark from-top-15">
+                                                                            <h6 class="font-bold center-icon-text"><span class="material-symbols-outlined">
+                                                                                notifications
+                                                                                </span>Request to delete alt</h6 class="font-bold">
+                                                                            <div class="row">
+                                                                                <div class="col-sm-4"><p>{% if rar.user.nick_name %}{{ rar.user.nick_name }}{% else %}{{ rar.user.username }}{% endif %} wants to delete the {{rar.alt.name}} alt. Do you approve of this?</p></div>
+    
+                                                                                <div class="col-sm-8">
+                                                                                    <form class="flex-end">
+                                                                                        <a href="{% url 'delete_alt_response' rar.id %}?answer=no" class="btn btn-danger color-white-important">No</a>
+                                                                                        <a href="{% url 'delete_alt_response' rar.id %}?answer=yes" class="btn btn-primary color-white-important from-left-10">Yes, delete it</a>
+                                                                                    </form>
+                                                                                </div>
+                                                                            </div>
+                                                                    </div>
+                                                                {% endfor %}
+                                                                {% endif %}
+
+
+                                                                <!-- Invite Request -->
+                                                                {% if invite_request %}
+                                                                {% for i_r in invite_request %}
+                                                                    <div class="alert alert-dark from-top-15">
+                                                                            <h6 class="font-bold center-icon-text"><span class="material-symbols-outlined">
+                                                                                notifications
+                                                                                </span>Join the team</h6 class="font-bold">
+                                                                            <div class="row">
+                                                                                <div class="col-sm-4"><p>Team {{i_r.team.name}} has invited you to their team</p></div>
+
+                                                                                <div class="col-sm-8">
+                                                                                    <form class="flex-end">
+                                                                                        <a href="{% url 'invite_member_response' i_r.team.id i_r.user.id 'Reject' %}" class="btn btn-danger color-white-important">Reject</a>
+                                                                                        <a href="{% url 'invite_member_response' i_r.team.id i_r.user.id 'Accept' %}" class="btn btn-primary color-white-important from-left-10">Accept</a>
+                                                                                    </form>
+                                                                                </div>
+                                                                            </div>
+                                                                    </div>
+                                                                {% endfor %}
+                                                                {% endif %}
+
+                                                                <!-- Notifications -->
+                                                                {% if notifications %}
+                                                                {% for notification in notifications %}
+                                                                    <div class="alert alert-secondary from-top-15">
+                                                                            <h6 class="font-bold center-icon-text"><span class="material-symbols-outlined">
+                                                                                notifications
+                                                                                </span>{{notification.title}}</h6 class="font-bold">
+                                                                            <p>{{notification.caption}}</p>
+                                                                            <small><i>{{notification.created_at|date:"Y-m-d H:i"}}</i></small>
+                                                                    </div>
+                                                                {% endfor %}
+                                                                <a href="{% url 'seen_notifications' %}">Seen</a>
+                                                                {% else %}
+                                                                    <p class="min-height-200 min-width-100 center-r-c"></p>
+                                                                {% endif %}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                            </div>
+
+                                            <div class="dashboard-detail-item from-top-25">
+                                                <!-- Notifications History -->
+                                                <div class="row">
+                                                    <div class="col-12">
+                                                        <p class="center-icon-text">
+                                                            <span class="material-symbols-outlined">
+                                                                mark_email_read
+                                                            </span>&nbsp;History
+                                                        </p>
+                                                    </div>
+                                                </div>
+
+                                                <div class="row">
+                                                    <div class="col-12">
+                                                        <div class="content">
+                                                            <!-- Notifications -->
+                                                            {% if notifications_history %}
+                                                            {% for notification in notifications_history %}
+                                                                <div class="alert alert-secondary from-top-15">
+                                                                        <h6 class="font-bold center-icon-text"><span class="material-symbols-outlined">
+                                                                            notifications
+                                                                            </span>{{notification.title}}</h6 class="font-bold">
+                                                                        <p>{{notification.caption}}</p>
+                                                                        <small><i>{{notification.created_at|date:"Y-m-d H:i"}}</i></small>
+                                                                </div>
+                                                            {% endfor %}
+                                                            {% else %}
+                                                                <p class="min-height-200 min-width-100 center-r-c">Nothing to show</p>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                        </div>
+                                    </div>
+                            </div>
+                        </div>
+
+
+
+
+
+                        <!-- Ticket -->
+                        <div class="tab-pane {% if tab == 'ticket' %}show active{% endif %} fade dashboard-detail" id="pills-ticket" role="tabpanel" aria-labelledby="pills-ticket-tab" tabindex="0">
+                            <div class="row">
+                                    <div class="col">
+                                            <div class="dashboard-detail-item">
+                                                    <!-- Create Ticket -->
+                                                    <div class="row">
+                                                        <div class="col-12">
+                                                            <p class="center-icon-text">
+                                                                <span class="material-symbols-outlined">
+                                                                    history_edu
+                                                                    </span>&nbsp;Create a ticket
+                                                            </p>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="row">
+                                                        <div class="col">
+                                                            <div class="content">
+
+                                                                <div class="alert">
+                                                                    <form method="post" action="{% url 'submit_ticket' %}" onsubmit="return confirm('Do you really want to send the form?');">
+                                                                        {% csrf_token %}
+                                                                        {{ticket_form.as_div}}
+                                                                        <input type="submit" value="submit" class="btn btn-porpule color-white-important">
+                                                                    </form>
+                                                                </div>
+
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                            </div>
+
+                                            <div class="dashboard-detail-item from-top-25">
+                                                <!-- Tickets History -->
+                                                <div class="row">
+                                                    <div class="col-12">
+                                                        <p class="center-icon-text">
+                                                            <span class="material-symbols-outlined">
+                                                                mark_email_read
+                                                            </span>&nbsp;History
+                                                        </p>
+                                                    </div>
+                                                </div>
+
+                                                <div class="row">
+                                                    <div class="col-12">
+                                                        <div class="content">
+                                                            <!-- Tickets -->
+                                                            {% if tickets_history %}
+                                                            {% for ticket in tickets_history %}
+                                                                <div class="alert alert-secondary from-top-15">
+                                                                        <h6 class="font-bold center-icon-text">{{ticket.title}}</h6 class="font-bold">
+                                                                        <hr>
+                                                                        <small class="badge bg-secondary">{{ticket.status|lower|title}}</small>
+                                                                        <p>{{ticket.text}}</p>
+                                                                        {% if tickets_answered %}
+                                                                            {% for answer in tickets_answered %}
+                                                                                {% if answer.ticket.id == ticket.id %}
+                                                                                    <p class="alert alert-warning from-top-15">Admin:<br>&nbsp;&nbsp; {{answer.description}}<p>
+                                                                                {% endif %}
+                                                                            {% endfor %}
+                                                                        {% endif %}
+                                                                        <small><i>{{ticket.created|date:"Y-m-d H:i"}}</i></small>
+                                                                </div>
+                                                            {% endfor %}
+                                                            {% else %}
+                                                                <p class="min-height-200 min-width-100 center-r-c">Nothing to show</p>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                        </div>
+                                    </div>
+                            </div>
+                        </div>
+
+
+
+
+
+
+
+
+                    </div>
+                </div>
+
+            </div>
+            
+
+            <!-- Register Bank Card Modal -->
+            <div class="modal fade" id="createBankCardModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabelbankcard" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h1 class="modal-title fs-5" id="staticBackdropLabelbankcard">Wixana</h1>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form method="post" action="{% url 'card_detail_update' %}" onsubmit="return confirm('Do you really want to submit the form?');">
+                            {% csrf_token %}
+                            <div class="bank-card">
+                                {{card_detail.card_form.as_div}}
+                            </div>
+                            <input type="submit" value="Submit" class="btn btn-porpule color-white from-top-15">
+                        </form>                    </div>
+                  </div>
+                </div>
+            </div>
+
+
+
+            <!-- Exchange mony calculator Modal -->
+            <div class="modal fade" id="calculaterModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h1 class="modal-title fs-5" id="staticBackdropLabel">Wixana</h1>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                      <div id="response-calculator"></div>
+                    </div>
+                  </div>
+                </div>
+            </div>
+
+            <!-- Payment debt Modal -->
+            <div class="modal fade" id="paymentLoan" aria-hidden="true" aria-labelledby="paymentLoanLabel" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h1 class="modal-title fs-5" id="paymentLoanLabel">WIXANA</h1>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <h6>Payment method:</h6>
+                            <div class="row">
+                                <div class="col-12"><button class="btn btn-porpule color-white-important from-top-15 full-width" data-bs-target="#paymentLoanWallet" data-bs-toggle="modal"><img src="{% static 'accounts/images/wallet2.png' %}" class="img-icon">&nbsp;Payment via wallet</button></div>
+                                <div class="col-12"><button class="btn btn-porpule color-white-important from-top-15 full-width" data-bs-target="#paymentLoanTrackingCode" data-bs-toggle="modal" id="btn-tracking-code"><img src="{% static 'accounts/images/card.png' %}" class="img-icon">&nbsp;Payment via tracking code</button></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Paid from wallet -->
+              <div class="modal fade" id="paymentLoanWallet" aria-hidden="true" aria-labelledby="paymentLoanWalletLabel" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                  <div class="modal-content">
+                        <div class="modal-header">
+                            <h1 class="modal-title fs-5" id="paymentLoanWalletLabel">WIXANA</h1>
+                        </div>
+                        <div class="modal-body">
+                            <h6>Your debt: {% if debts %}<span id="debt_in_cut">{{debts.debt_amount}}</span> K{% else %}0{% endif %}</h6>
+                            <h6>Your balance: {% if wallet_report %}{{wallet_report.amount}}{% else %}Not define{% endif %}</h6>
+
+                            <form method="post" action="{% url 'payment_debt_from_wallet' %}?method=wallet" class="from-top-15">
+                                {% csrf_token %}
+                                <input type="hidden" value="{{debts.id}}" name="debt_id">
+                                <div class="mb-3">
+                                    <input type="submit" value="Pay" class="btn btn-porpule color-white-important">
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <a href="{% url 'dashboard' %}?tab=loan" class="btn btn-outline-dark dark-link">Back to dashboard</a>
+                        </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Payment via tracking code-->
+              <div class="modal fade" id="paymentLoanTrackingCode" aria-hidden="true" aria-labelledby="paymentLoanTrackingCodeLabel" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                  <div class="modal-content">
+                        <div class="modal-header">
+                            <h1 class="modal-title fs-5" id="paymentLoanTrackingCodeLabel">WIXANA</h1>
+                        </div>
+                        <div class="modal-body">
+                            <h6>Your debt: {% if debts %}<span id="debt_in_cut">{{debts.debt_amount}}</span> K{% else %}0{% endif %}</h6>
+                            <h6>Your debt to IR: <span id="debt_to_ir"></span> T</h6>
+                            <hr>
+                            <small>Please transfer the above amount in Tomans to the following card number. Then enter your deposit tracking code in the box below.</small>
+                            
+                            {% if wixana_card_detail %}
+                                <div class="alert alert-dark from-top-15">
+                                    <small class="flex-between">Card number: {{wixana_card_detail.card_number}}</small>
+                                    <small class="flex-between">Card name: {{wixana_card_detail.card_name}}</small>
+                                </div>
+                                <form method="post" action="{% url 'payment_debt_from_wallet' %}?method=tracking_code" class="from-top-15">
+                                    {% csrf_token %}
+                                    <div class="mb-3">
+                                        <input type="text" placeholder="Tracking code..." name="tracking_code">
+                                    </div>
+                                    <input type="hidden" id="debt-in-ir" name="debt_in_ir">
+                                    <input type="hidden" value="{{debts.id}}" name="debt_id">
+                                    <div class="mb-3">
+                                        <input type="submit" value="submit" class="btn btn-porpule color-white-important">
+                                    </div>
+                                </form>
+                            {% else %}
+                                <small>Admin's bank card information has not been registered</small>
+                            {% endif %}
+                        </div>
+                        <div class="modal-footer">
+                            <a href="{% url 'dashboard' %}?tab=loan" class="btn btn-outline-dark dark-link">Back to dashboard</a>
+                        </div>
+                  </div>
+                </div>
+              </div>
+
+              <script>
+                function waitForLoad2(id, callback){
+                    var timer = setInterval(function(){
+                        if(document.getElementById('btn-click-calc')){
+                            clearInterval(timer);
+                            callback();
+                        }
+                    }, 100);
+                }
+                
+                
+                waitForLoad2("subm", function(){
+                    document.getElementById("btn-tracking-code").onclick = function()
+                    {
+                        var debt = {{debts.debt_amount}};
+                        {% if cut_per_ir %}
+                        document.getElementById('debt_to_ir').innerText = debt * {{cut_per_ir}};
+                        document.getElementById('debt-in-ir').value = debt * {{cut_per_ir}};
+                        {% else %}
+                        document.getElementById('debt_to_ir').innerText = "No amount has been entered for conversion by admin";
+                        document.getElementById('debt-in-ir').value = 0;
+                        {% endif %}
+                    }
+                });
+              </script>
+
+        </div>

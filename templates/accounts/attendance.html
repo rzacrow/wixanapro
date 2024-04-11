@@ -1,0 +1,1151 @@
+{% extends 'base.html' %}
+{% block title %}{{attendance.date_time}}{% endblock %}
+
+{% block body %}
+{% load static %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+
+    <!-- Create Attendance -->
+<div class="back-color-fit">
+<div class="container">
+    <div class="row">
+        <div class="col">
+
+
+                <div class="dashboard-detail-item from-top-25 without-scroll from-top-200">
+                    
+            {% if messages %}
+            {% for message in messages %}
+                <div class="row rounded-md">
+                    <div class="col">
+                        <h6 class="font-bold alert alert-{% if message.level_tag == 'error'%}danger{% elif message.level_tag == 'success'%}success{% else %}warning{% endif %}">{{message}}</h6>
+                    </div>
+                </div>
+            {% endfor %}
+            {% endif %}
+
+
+                    <form method='post'>
+                        {% csrf_token %}
+                    <div class="flex-between">
+                        <h3 class="center-icon-text color-white-important" id="attendance_title">
+                            <span class="material-symbols-outlined">
+                                note_stack_add
+                                </span>&nbsp;Attendance
+                        </h3>
+                        <div class="center-icon-text">
+                            <input type="submit" class="btn btn-porpule color-white-important" id="btn_submit_attendance" value="+ Create">
+                        </div>
+                    </div>
+
+
+
+
+
+                    <div class="content padding-15">         
+
+                            <!-- Options -->
+                            <div class="row">
+                                <div class="col">
+                                <fieldset>
+                                    <legend class="pink-link"><img src="{% static 'accounts/images/options.png' %}" class="img-icon">&nbsp;Options</legend>
+                                    <div class="row">
+
+                                        <!-- Cycle -->
+                                        <div class="col-md-6 col-lg-4 col-xl-3">
+                                            <label for="cycle-select" class="form-label">Cycle</label>
+                                            <select id="cycle-select" name="cycle" class="select-custom-style">
+                                                {% if cycles %}
+                                                    {% for cycle in cycles %}
+                                                        <option value="{{cycle.id}}">{{cycle.start_date|date:"Y-m-d H:i"}}</option>
+                                                    {% endfor %}
+                                                {% endif %}
+                                            </select>
+                                        </div>
+
+                                        <!-- Run Type -->
+                                        <div class="col-md-6 col-lg-4 col-xl-3">
+                                            <label for="run_type_select" class="form-label">Run type</label>
+                                            <select id="run_type_select" name="run_type" class="select-custom-style">
+                                                {% if run_types %}
+                                                    {% for run_type in run_types %}
+                                                        <option value="{{run_type.id}}">{{run_type.name}} | G:{{run_type.guild}} | C:{{run_type.community}}</option>
+                                                    {% endfor %}
+                                                {% endif %}
+                                            </select>
+                                        </div>
+
+                                        <!-- Status -->
+                                        <div class="col-md-6 col-lg-4 col-xl-3">
+                                            <label for="status-select" class="form-label">Status</label>
+                                            <select id="status-select" name="status" class="select-custom-style" disabled>
+                                                <option value="A" selected>Active</option>
+                                                <option value="C">Close</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Realm Method -->
+                                        <div class="col-md-6 col-lg-4 col-xl-3">
+                                            <label for="realm-method-select" class="form-label">Realm type</label>
+                                            <select id="realm-method-select" name="realm_method" class="select-custom-style" onchange="roletypechange()">
+                                                <option value="1">Single realm</option>
+                                                <option value="2">Multi realm</option>
+                                            </select>
+                                        </div>
+
+                                    </div>
+
+                                    <!-- Add realm popup -->
+                                    <div class="row display-none card-popup" id="select-realm-box">
+                                        <div class="col">
+                                            <div class="flex-between">
+                                                <h5 class="color-white margin-bottom-less">Realms</h5>
+                                                <div>
+                                                    <button type="button" onclick="add_new_realm()" class="btn-box-rgb color-white-important" id="add-realm">
+                                                        +
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="line-bg-rgb"></div>
+                                            <div></div>
+
+                                            <div class="row from-top-15" id="parent-realm-detail">
+                                            </div>
+
+                                        </div>
+                                    </div>
+
+                                </fieldset>
+                                </div>
+                            </div>
+
+                            <!-- In multi realm method: show panel for add and remove realm -->
+                            <script>
+                                //realm item counter
+                                let realm_object_counter = 0;
+
+                                //div parent
+                                const parent_realm_section = document.getElementById('parent-realm-detail');
+                                let realm_detail_box = document.getElementById('select-realm-box');
+                                realm_detail_box.style.display = 'flex';
+                                document.getElementById('add-realm').style.display = 'none';
+
+                                //Create realm item
+                                function create_new_realm(){
+                                    
+                                    realm_object_counter ++;
+
+                                    let realm_section = document.createElement('div');
+                                    realm_section.className = 'col-md-6';
+
+                                    let realm_section_row = document.createElement('div');
+                                    realm_section_row.className = 'row';
+
+                                    realm_section_row.innerHTML = `
+                                        <div class="col col-6 realm_box_${realm_object_counter}">
+                                            <div class="mb-3">
+                                                <select name="realm_${realm_object_counter}" id="realm_${realm_object_counter}" class="select-custom-style form-select">
+                                                    <option value="0">Realm</option>
+                                                    {% if realms %}
+                                                        {% for realm in realms %}
+                                                        <option value="{{realm.id}}">{{realm.name}}</option>
+                                                        {% endfor %}
+                                                    {% endif %}
+                                                </select>
+                                            </div>
+                                        </div>
+                                
+                                        <div class="col col-4 realm_box_${realm_object_counter}">
+                                            <div class="mb-3">
+                                                <input type="number" placeholder="Amount: no separator" name="realm_amount_${realm_object_counter}" id="realm_amount_${realm_object_counter}" class="form-control">
+                                            </div>
+                                        </div> 
+                                    `;
+                                    
+                                    //delete realm button
+                                    const delete_realm_btn = document.createElement('button');
+                                    delete_realm_btn.setAttribute('type', 'button');
+                                    delete_realm_btn.className = "color-white-important center-icon-text center-r-c btn btn-danger delete_realm";
+                                    delete_realm_btn.innerHTML = '<span class="material-symbols-outlined">delete</span>';
+                                    
+                                    delete_realm_btn.addEventListener('click', function(){
+                                        parent_realm_section.removeChild(realm_section);
+                                    });
+
+                                    const delete_realm_btn_box_mb_class = document.createElement('div');
+                                    delete_realm_btn_box_mb_class.className = "mb-3";
+
+                                    const delete_realm_btn_box = document.createElement('div');
+                                    delete_realm_btn_box.className = `col col-2 realm_box_${realm_object_counter}`;
+                                    
+                                    delete_realm_btn_box_mb_class.appendChild(delete_realm_btn);
+                                    delete_realm_btn_box.appendChild(delete_realm_btn_box_mb_class);
+                                    realm_section_row.appendChild(delete_realm_btn_box)
+
+                                    realm_section.appendChild(realm_section_row);
+
+                                    //add to parent div
+                                    parent_realm_section.appendChild(realm_section);
+                                }
+                                
+
+                                create_new_realm();
+
+                                //ever realm method was changed: (realms visibility) 
+                                function roletypechange(){
+                                    let element = document.getElementById('realm-method-select');
+                                    let realm_detail_box = document.getElementById('select-realm-box');
+                                    parent_realm_section.innerHTML = "";
+
+                                    if (element.value == 2) {
+                                        document.getElementById('add-realm').style.display = 'block';
+                                        realm_detail_box.style.display = "flex";
+                                        create_new_realm();
+                                    } else{
+                                        document.getElementById('add-realm').style.display = 'none';
+                                        realm_detail_box.style.display = "flex";
+                                        create_new_realm();
+                                    }
+                                }
+                                
+                                function add_new_realm(){
+                                    create_new_realm();
+                                }
+                            </script>
+        
+               
+
+
+
+
+
+
+
+
+
+
+
+
+
+                            <hr>
+                            <!-- Detail -->
+                            <div class="row">
+                                <div class="col">
+                                    <fieldset>
+                                        <legend class="pink-link"><img src="{% static 'accounts/images/detail.png' %}" class="img-icon">&nbsp;Detail</legend>
+                                        <div class="row">
+                                            
+                                            <!-- Date Time -->
+                                            <div class="col-md-6 col-lg-3">
+
+                                                <div class="row">
+                                                    <div class="col col-10">
+                                                        <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+                                                        {{ date_time_picker.media }}
+                                                        {{date_time_picker.as_p}}
+                                                    </div>
+                                                    <div class="col col-2 align-self-end position-relative">
+                                                        <label></label>
+                                                        <button type="button" class="btn-specific-time" onclick="btn_time_popup()"><span class="material-symbols-outlined">
+                                                            timer
+                                                            </span></button>
+                                                        <div class="display-none" id="time_popup">
+                                                            <div class="flex-between">
+                                                                <b>Special Times</b>
+                                                                <button class="btn-sm-custom" type="button" data-bs-toggle="modal" data-bs-target="#timeModalBackdrop">+</button>
+                                                            </div>
+                                                            {% if specific_time %}
+                                                                {% for time in specific_time %}
+                                                                    <div class="row">
+                                                                        <div class="col col-10">
+                                                                            <button class="badge bg-secondary rounded from-top-10 full-width" type="button" onclick="btn_time_add('{{time.time|date:"H:i"}}')">{{time.time|date:"H:i"}}</button>
+                                                                        </div>
+
+                                                                        <div class="col col-2 center-r-c">
+                                                                            <a href="{% url 'remove_time' time.id %}" class="color-red center-r-c from-top-10"><span class="material-symbols-outlined">
+                                                                                delete
+                                                                                </span>
+                                                                            </a>
+                                                                        </div>
+                                                                    </div>
+                                                                {% endfor %}
+                                                            {% else %}
+                                                                <div class="center-icon-text">There aren't any specific times</div>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+  
+
+
+
+
+                                                <!-- Total pot -->
+                                                <div class="col-md-6 col-lg-3">
+                                                    <p><label for="total_pot" class="form-label">Total pot</label></p>
+                                                    <input type="number" placeholder="No separator in thousands" name="total_pot" id="total_pot">
+                                                </div>
+
+                                                <!-- Boss kill-->
+                                                <div class="col-md-6 col-lg-1">
+                                                    <p><label for="boss_kill" class="form-label">Boss kill</label></p>
+                                                    <input type="number" placeholder="Boss kill" name="boss_kill" id="boss_kill" value="0">
+                                                </div>
+
+
+                                                <!-- Community -->
+                                                <div class="col-md-6 col-lg-2">
+                                                    <p><label for="community" class="form-label">Community</label></p>
+                                                    <input type="number" placeholder="Community" name="community" id="community">
+                                                </div>
+
+
+                                                <!-- Total guild -->
+                                                <div class="col-md-6 col-lg-2">
+                                                    <p><label for="total_guild" class="form-label">Total guild</label></p>
+                                                    <input type="number" placeholder="Total guild" name="total_guild" id="total_guild">
+                                                </div>
+
+                                                <div class="col-md-6 col-lg-1">
+                                                    <p><label for="total_guild" class="form-label"></label></p>
+
+                                                    <div class="mb-3">
+                                                    <button type="button" class="btn btn-border-bottom form-control" onclick="show_guild_detail()"><span class="material-symbols-outlined">
+                                                        expand_more
+                                                        </span></button></div>
+                                                </div>
+
+
+                                                <!-- Guild detail -->
+                                                <div class="col display-none card-popup" id="guild_detail_box">
+                                                    <div class="row">
+                                                        <div class="col">
+
+                                                            <div class="flex-between">
+                                                                <h5 class="color-white margin-bottom-less">Guild detail</h5>
+                                                            </div>
+
+                                                            <div class="line-bg-rgb full-width"></div>
+                
+                                                            <div class="row from-top-15" id="parent-realm-detail">
+                                                                <div class="col-md-6 col-lg-3">
+                                                                    <p><label for="guild_refunds" class="form-label">Refunds</label></p>
+                                                                    <input type="number" placeholder="Refunds" name="guild_refunds" id="guild_refunds">
+                                                                </div>
+
+                                                                <div class="col-md-6 col-lg-3">
+                                                                    <p><label for="guild_in_house_customer_pot" class="form-label">In house customer pot</label></p>
+                                                                    <input type="number" placeholder="In house customer pot" name="guild_in_house_customer_pot" id="guild_in_house_customer_pot">
+                                                                </div>
+
+
+                                                                <div class="col-md-6 col-lg-2">
+                                                                    <p><label for="guild_gold_collector" class="form-label">Gold collector</label></p>
+                                                                    <input type="number" placeholder="Gold collector" name="guild_gold_collector" id="guild_gold_collector">
+                                                                </div>
+
+                                                                <div class="col-md-6 col-lg-2">
+                                                                    <p><label for="guild_booster" class="form-label">Booster</label></p>
+                                                                    <input type="number" placeholder="Booster" name="guild_booster" id="guild_booster">
+                                                                </div>
+
+                                                                <div class="col-md-6 col-lg-2">
+                                                                    <p><label for="guild_bank" class="form-label">Guild bank</label></p>
+                                                                    <input type="number" placeholder="Guild bank" name="guild_bank" id="guild_bank">
+                                                                </div>
+                                                            </div>
+                
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                        </div>
+                                    </fieldset>
+                                </div>
+                            </div>
+
+                            <!-- Guild detail visibility -->
+                            <script>
+                                let is_visibale = false;
+
+                                function show_guild_detail(){
+                                    if (is_visibale == false)
+                                    {
+                                        document.getElementById('guild_detail_box').style.display = 'block';
+                                        is_visibale = true;
+                                    }else{
+                                        document.getElementById('guild_detail_box').style.display = 'none';
+                                        is_visibale = false;
+                                    }
+                                }
+                            </script>
+
+
+                            <hr>
+
+
+                            <!-- Manage Team -->
+                            <div class="row">
+                                <div class="col">
+                                    <fieldset>
+                                        <legend class="pink-link"><img src="{% static 'accounts/images/manage-team.png' %}" class="img-icon">&nbsp;Manage team</legend>
+                                        <div class="row">
+
+                                            <!-- Character names -->
+                                            <div class="col-lg-6">
+                                                <label for="character_names" class="form-label">Character names</label>
+                                                <small class="text-danger" id="character_names_help_text"></small>
+                                                <textarea name="character_names" id="character_names" class="color-dark min-height-250px bg-dark-custom"></textarea>
+                                            </div>
+
+                                            <!-- Run Note -->
+                                            <div class="col-lg-6">
+                                                <label for="run_note" class="form-label">Run Note</label>
+                                                <textarea name="run_note" id="run_note" class="min-height-250px bg-dark-custom"></textarea>
+                                            </div>
+                                        </div>
+                                    </fieldset>
+                                </div>
+                            </div>
+
+
+
+                            <!-- Boosters -->
+                            <div class="row">
+                                <div class="col">
+                                    <fieldset>
+                                        <legend class="pink-link">
+                                            <div class="row">
+
+                                                <!-- New booster -->
+                                                <div class="col">
+                                                    <div class="flex-between border rounded padding-5">
+                                                        <div class="flex-start">
+                                                            <img src="{% static 'accounts/images/gamer.png' %}" class="img-icon">&nbsp;Boosters
+                                                        </div>
+
+                                                        <div class="flex-end">
+                                                            <button type="button" onclick="add_new_booster()" class="btn-box-rgb color-white-important" id="add-new-booster">
+                                                                +
+                                                            </button>
+                                                        </div>
+
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Booster Actions -->
+                                                <div class="col-xl-4 col-lg-5 col-md-6">
+                                                        <div class="row">
+                                                            <div class="col-md-5 from-top-25-mobile">
+                                                                <label for="add_team_to_attendance" class="form-label text-sm">Add team members</label>
+                                                            </div>
+
+                                                            <div class="col-md-7 center-icon-text">
+                                                                <select class="form-select full-width" name="add_team_to_attendance" id="add_team_to_attendance">
+                                                                    <option value="0">Select team</option>
+                                                                    {% if teams %}
+                                                                        {% for team in teams %}
+                                                                            <option value="{{team.id}}">{{team.name}}</option>
+                                                                        {% endfor %}
+                                                                    {% endif %}
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                    <!--<div class="mb-3">
+                                                        <label for="discord_channel_members" class="form-label text-sm">Add Discord channel members</label>
+                                                        <div class="row">
+                                                            <div class="col-10">
+                                                                <input type="text" placeholder="Enter the channel name" name="discord_channel_members" id="discord_channel_members">
+                                                            </div>
+                                                            <div class="col-2">
+                                                                <a href="https://discord.com/api/guilds/1206524282864410685/" class="btn btn-outline-porpule"><span class="material-symbols-outlined">
+                                                                keyboard_arrow_right
+                                                                </span></a>
+                                                            </div>
+                                                        </div>-->
+                                                </div>
+
+                                            </div>
+                                        </legend>
+
+                                        <!-- Booster Parent item -->
+                                        <div class="row from-top-25" id="parent_booster_detail">
+                                        </div>
+
+                            
+                            
+
+                                        <hr>
+                                    </fieldset>
+                                </div>
+                            </div>
+                
+
+                        </form>
+                    </div>
+                </div>
+
+                                    <!-- Time Modal -->
+                                    <div class="modal fade" id="timeModalBackdrop" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h1 class="modal-title fs-5" id="staticBackdropLabel">New specific time</h1>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <div class="container">
+                                                        <div class="row">
+                                                            <div class="col center-r-c">
+                                                                <form action="{% url 'add_time' %}" method="post">
+                                                                    {% csrf_token %}
+                                                                    <label for="specific_time_input" class="form-label">Time<label>
+                                                                    <div class="mb-3">
+                                                                        <input type="text" name="time" placeholder="'HH:MM' -> '11:22'" class="form-control" id="specific_time_input">
+                                                                    </div>
+                                                                    <div class="mb-3">
+                                                                        <input type="submit" value="Add" class="btn btn-porpule color-white-important">
+                                                                    </div>
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+
+
+
+
+                <!-- Footer -->
+                <div class="min-height-200"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+    <script>
+
+        //change style of character_names input when initializing
+        let char_names = document.getElementById('character_names');
+        let total_pot = document.getElementById('total_pot');
+
+        let run_type = document.getElementById('run_type_select');
+        let total_guild = document.getElementById('total_guild');
+        let community = document.getElementById('community');
+
+        let in_house_customer_pot = document.getElementById('guild_in_house_customer_pot');
+        let refunds = document.getElementById('guild_refunds');
+        let collector = document.getElementById('guild_gold_collector');
+        let bank = document.getElementById('guild_bank');
+        let guild_booster = document.getElementById('guild_booster');
+        let boss_kill = document.getElementById('boss_kill');
+
+        total_pot.addEventListener('keyup', calculate_shares);
+        run_type.addEventListener('onchange', calculate_shares);
+        total_guild.addEventListener('keyup', calculate_shares);
+        community.addEventListener('keyup', calculate_shares);
+        in_house_customer_pot.addEventListener('keyup', calculate_shares);
+        refunds.addEventListener('keyup', calculate_shares);
+        collector.addEventListener('keyup', calculate_shares);
+        bank.addEventListener('keyup', calculate_shares);
+        guild_booster.addEventListener('keyup', calculate_shares);
+        boss_kill.addEventListener('keyup', calculate_shares);
+
+        //Calculate shares for each player
+        function calculate_shares(){
+            //Calculate cut distribution
+            let amount = total_pot.value;
+            let guild_share;
+            let community_share;
+
+            {% if run_types %}
+                {% for run_type in run_types %}
+                    if ("{{run_type.id}}" == run_type.value){
+                        guild_share = "{{run_type.guild}}";
+                        community_share = "{{run_type.community}}";
+                    }
+                {% endfor %}
+            {% endif %}
+
+         
+            let guild_amount = parseInt((guild_share * amount) / 100);
+            ihcp = in_house_customer_pot.value;
+
+            if (ihcp.length > 0){
+                guild_amount += parseInt(in_house_customer_pot.value);
+            }
+
+            guild_amount -= refunds.value;
+
+
+            total_guild.value = guild_amount;
+            community.value = parseInt(((community_share * amount) / 100));
+
+            collector.value = parseInt(((total_guild.value * 2) / 100));
+            bank.value =  parseInt(((total_guild.value * 3) / 100));
+            guild_booster.value =  parseInt(((total_guild.value * 95) / 100));
+            //End
+
+
+            //Cut per booster
+            let multiplier;
+            let sum_multiplier= 0;
+            let boosters = document.getElementsByClassName('booster_boxes');
+            for (booster of boosters){
+                let index = booster.getAttribute('id').split('_')[2];
+                missing_boss = document.getElementById('missing_boss_' + index);
+                role = document.getElementById('booster_role_' + index);
+                multiplier_input = document.getElementById('multiplier_' + index);
+                let ratio = 0;
+                {% if roles %}
+                    {% for role in roles %}
+                        if ("{{role.id}}" == role.value){
+                            ratio = "{{role.ratio}}";
+                        }
+                    {% endfor %}
+                {% endif %}
+
+
+                let booster_killed_boss = boss_kill.value - missing_boss.value;
+                
+                if (booster_killed_boss > 0){
+                    multiplier = ((booster_killed_boss / boss_kill.value) * ratio);
+                }else{
+                    multiplier = 1.0;
+                }
+
+                sum_multiplier += multiplier;
+                multiplier_input.value = multiplier;
+            }
+
+            let cut_per_booster = 0;
+            if ((guild_booster.value > 0) && sum_multiplier > 0){
+                cut_per_booster = parseInt(guild_booster.value / sum_multiplier);
+            }
+
+            
+            for (booster of boosters){
+                let index = booster.getAttribute('id').split('_')[2];
+
+                cut = document.getElementById('booster_cut_' + index);
+                multiplier = document.getElementById('multiplier_' + index);
+
+                cut.value = parseInt(cut_per_booster * multiplier.value);
+            }
+        }
+
+        //add keyup Event to Character_names input 
+        char_names.addEventListener("keyup", char_names_keyup);
+
+
+        //booster index counter
+        let booster_object_counter = 0;
+
+        //booster parent div
+        const parent_section = document.getElementById("parent_booster_detail");
+
+        //Create booster item
+        function create_booster(){
+            `
+            This function create a new booster item
+            `
+            booster_object_counter++;
+    
+            const formContainer = parent_section;
+            
+            const col_col_12 = document.createElement('div');
+            col_col_12.className = 'col col-12';
+
+            const row_booster_boxes = document.createElement('div');
+            row_booster_boxes.className = 'row booster_boxes';
+            row_booster_boxes.setAttribute('id', `booster_box_${booster_object_counter}`);
+
+            //role
+            const col_lg_role = document.createElement('div');
+            col_lg_role.className = `col-lg-2 booster_box_${booster_object_counter}`;
+
+                //role_label
+                const role_label = document.createElement('label');
+                role_label.className = 'form-label color-white-important';
+                role_label.setAttribute('for',`booster_role_${booster_object_counter}`);
+                role_label.innerText = 'Role';
+
+                //role_select
+                const select_role = document.createElement('div');
+                select_role.className = 'mb-3';
+                select_role.innerHTML = `
+                        <select name="booster_role_${booster_object_counter}" id="booster_role_${booster_object_counter}" class="form-select" onchange="calculate_shares()">
+                            {% if roles %}
+                                {% for role in roles %}
+                                    <option value="{{role.id}}">{{role}}</option>
+                                {% endfor %}
+                            {% endif %}
+                        </select>`
+                ;
+
+
+            //username
+            const col_lg_username = document.createElement('div');
+            col_lg_username.className = `col-lg-2 booster_box_${booster_object_counter}`;
+
+                //username_label
+                const username_label = document.createElement('label');
+                username_label.className = 'form-label color-white-important';
+                username_label.setAttribute('for',`booster_username_${booster_object_counter}`);
+                username_label.innerText = 'Username';
+
+                //username_select
+                const select_username = document.createElement('div');
+                select_username.className = 'mb-3';
+                select_username.innerHTML = `
+                        <select name="booster_username_${booster_object_counter}" id="booster_username_${booster_object_counter}" class="form-select booster_usernames booster_username_select" onchange="change_username_set_alt(${booster_object_counter})">
+                            <option value="0">Username</option>
+                            {% if boosters %}
+                                {% for booster in boosters %}
+                                    <option value="{{booster.id}}">{{booster}}</option>
+                                {% endfor %}
+                            {% endif %}
+                        </select>`
+                ;
+
+
+
+            //alt
+            const col_lg_alt = document.createElement('div');
+            col_lg_alt.className = `col-lg-3 booster_box_${booster_object_counter}`;
+
+
+                //alt_label
+                const alt_label = document.createElement('label');
+                alt_label.className = 'form-label color-white-important';
+                alt_label.setAttribute('for',`booster_alt_${booster_object_counter}`);
+                alt_label.innerText = 'Alt';
+
+                //alt_select
+                const select_alt = document.createElement('div');
+                select_alt.className = 'mb-3';
+                select_alt.innerHTML = `
+                    <div class="mb-3">
+                        <select name="booster_alt_${booster_object_counter}" id="booster_alt_${booster_object_counter}" class="form-select booster_alts_select" onchange="select_booster_alt(${booster_object_counter})">
+                            <option value="0">Alt</option>
+                            {% if alts %}
+                                {% for alt in alts %}
+                                    <option value="{{alt.id}}">{{alt}}</option>
+                                {% endfor %}
+                            {% endif %}
+                        </select>
+                    </div>`
+                ;
+
+
+
+
+            //missing boss
+            const col_lg_miss_boss = document.createElement('div');
+            col_lg_miss_boss.className = `col-lg-2 booster_box_${booster_object_counter}`;
+
+                //missing_boss_label
+                const missing_boss_label = document.createElement('label');
+                missing_boss_label.className = 'form-label color-white-important';
+                missing_boss_label.setAttribute('for',`missing_boss_${booster_object_counter}`);
+                missing_boss_label.innerText = 'Missing boss';
+
+                //missing_boss_select
+                const missing_boss_input = document.createElement('div');
+                missing_boss_input.className = 'mb-3';
+                missing_boss_input.innerHTML = `
+                    <input type="text" name="missing_boss_${booster_object_counter}" id="missing_boss_${booster_object_counter}" value="0" class="form-control" onchange="calculate_shares()">
+                    <input type="hidden" name="multiplier_${booster_object_counter}" id="multiplier_${booster_object_counter}" class="form-control" value="1.0"> `
+                ;
+
+                
+
+            //Cut
+            const col_lg_cut = document.createElement('div');
+            col_lg_cut.className = `col-lg-2 booster_box_${booster_object_counter}`;
+
+                //Cut label
+                const cut_label = document.createElement('label');
+                cut_label.className = 'form-label color-white-important';
+                cut_label.setAttribute('for',`booster_cut_${booster_object_counter}`);
+                cut_label.innerText = 'Cut';
+
+                //Cut select
+                const cut_input = document.createElement('div');
+                cut_input.className = 'mb-3';
+                cut_input.innerHTML = `
+                    <input type="text" name="booster_cut_${booster_object_counter}" id="booster_cut_${booster_object_counter}" value="0" class="form-control">
+                `
+                ;
+
+
+            //Delete
+            const col_lg_delete = document.createElement('div');
+            col_lg_delete.className = `col-lg-1 booster_box_${booster_object_counter}`;
+  
+                //Delete label
+                const delete_label = document.createElement('label');
+                delete_label.className = 'form-label color-white-important';
+                delete_label.setAttribute('for',`delete_booster_${booster_object_counter}`);
+                delete_label.innerText = 'Delete';
+
+                //Delete button
+                const deleteButtonBox = document.createElement('div');
+                deleteButtonBox.className = 'mb-3';
+                
+            
+
+
+            const deleteButton = document.createElement('button');
+            deleteButton.innerHTML = '<span class="material-symbols-outlined">delete</span>';
+            deleteButton.setAttribute('id',`delete_booster_${booster_object_counter}`);
+            deleteButton.setAttribute('class',`btn form-control btn-danger color-white-important center-r-c delete-btn`);
+
+            
+
+            deleteButton.addEventListener('click', function() {
+                formContainer.removeChild(col_col_12);
+                calculate_shares();
+            });
+
+
+            //Role
+            col_lg_role.appendChild(role_label);
+            col_lg_role.appendChild(select_role);
+
+
+            //Username
+            col_lg_username.appendChild(username_label);
+            col_lg_username.appendChild(select_username);
+
+
+            //Alt
+            col_lg_alt.appendChild(alt_label);
+            col_lg_alt.appendChild(select_alt);
+
+
+            //Missing Boss
+            col_lg_miss_boss.appendChild(missing_boss_label);
+            col_lg_miss_boss.appendChild(missing_boss_input);
+
+
+            //Cut
+            col_lg_cut.appendChild(cut_label);
+            col_lg_cut.appendChild(cut_input);
+
+
+            //Delete
+            col_lg_delete.appendChild(delete_label);
+            col_lg_delete.appendChild(deleteButtonBox);
+            deleteButtonBox.appendChild(deleteButton);
+
+
+            row_booster_boxes.appendChild(col_lg_role);
+            row_booster_boxes.appendChild(col_lg_username);
+            row_booster_boxes.appendChild(col_lg_alt);
+            row_booster_boxes.appendChild(col_lg_miss_boss);
+            row_booster_boxes.appendChild(col_lg_cut);
+            row_booster_boxes.appendChild(col_lg_delete);
+
+            col_col_12.appendChild(row_booster_boxes);            
+            formContainer.appendChild(col_col_12);
+        }
+
+        create_booster();
+
+        
+        function add_new_booster(){
+            create_booster();
+            calculate_shares();
+        }
+
+
+        //TODO:When changing the alt select box, the username should be adjusted accordingly
+        function select_booster_alt(index){
+            alt = document.getElementById('booster_alt_' + index).value;
+            
+
+            usernames = document.getElementById("booster_username_" + index);
+
+            {% for alt_item in alts %}
+                if ({{alt_item.id}} == alt){
+                    usernames.value = "{{alt_item.player.id}}";
+                }
+            {% endfor %}
+        }
+
+        //When changing the username select box, the characters should be adjusted accordingly
+        function change_username_set_alt(index){
+            let username_id = document.getElementById('booster_username_' + index).value;
+            
+
+            alt = document.getElementById("booster_alt_" + index);
+            alt.innerHTML = '<option value="0">Alt</option>';
+            {% for alt_item in alts %}
+                if ({{alt_item.player.id}} == username_id){
+                    alt.innerHTML +='<option value="{{alt_item.id}}">{{alt_item}}</option>';
+                }
+            {% endfor %}
+        }
+
+
+        //Add booster by character names input
+        function add_new_booster_by_value(alt_id){
+            let alt_verified = false;
+            let username_id;
+            {% if alts %}
+                {% for alt in alts %}
+                    if({{alt.id}} == alt_id){
+                        alt_verified = true;
+                        username_id = {{alt.player.id}};
+                    }
+                {% endfor %}
+            {% endif %}
+
+            let booster_alts_select = document.getElementsByClassName('booster_alts_select');
+            let is_exist = false;
+
+            if (alt_verified == true){
+
+                //if current alt is exist in boosters, set is_exist to True and then ignore add booster
+                for (select of booster_alts_select){
+                    if (select.value == alt_id){
+                        is_exist = true;
+                        break;
+                    }
+                }
+
+                //if there isn't a booster with this alt in boosters list then create a booster 
+                if (is_exist == false){
+                    add_new_booster();
+                    let current_id = booster_object_counter;
+
+                    select_alt = document.getElementById('booster_alt_' + current_id);
+                    select_username = document.getElementById('booster_username_' + current_id);
+                    select_username.value = username_id;
+
+                    change_username_set_alt(current_id);
+                    select_alt.value = alt_id;
+                }
+            }
+        }
+
+        let boosters = [];
+
+        function new_booster_by_username(ids){
+            let booster_username_select = document.getElementsByClassName('booster_username_select');
+            parent_section.innerHTML = "";
+
+            for (id of ids){
+                let is_exist = false;
+                //if current username is exist in boosters, set is_exist to True and then ignore add booster
+                for (select of booster_username_select){
+                    if (select.value == id){
+                        is_exist = true;
+                        break;
+                    }
+                }
+
+                //if there isn't a booster with this alt in boosters list then create a booster 
+                if (is_exist == false){
+                    console.log(parent_section);
+                    add_new_booster();
+                    let current_id = booster_object_counter;
+
+                    select_username = document.getElementById('booster_username_' + current_id);
+                    select_username.value = id;
+
+                    select_alt = document.getElementById('booster_alt_' + current_id);
+                    change_username_set_alt(current_id);
+                }
+            }
+
+            boosters = [];
+        }
+
+
+        //Check Character-name element to if exist any character when keyup event called 
+        function char_names_keyup(e) {
+            char_names_len = char_names.value.length;
+            if (char_names_len > 0){
+                document.getElementById('character_names_help_text').innerText = '';
+                document.getElementById('character_names_help_text').innerHTML = '';
+
+
+                char_names.style['border'] = "none";
+                char_names.style['border-width'] = "4px";
+                char_names.style['border-style'] = "solid";
+                char_names.style['border-radius'] =  "none !important";
+                char_names.style["border-image"] =  "linear-gradient(#d20a3f, #0bc3c6) 30";
+
+                let wrong = [];
+
+                let players = char_names.value.split(',');
+                for (character of players){
+                    let alt = character.split('-')[0];
+                    let realm = character.split('-')[1];
+
+
+                    if ( ((alt === undefined) || (realm === undefined)) || ((alt === "") || (realm === "")) ){
+                        if (alt === undefined){alt = " "};
+                        if (realm === undefined){realm = " "};
+
+                        wrong.push(alt + "-" + realm);
+                    }else{
+                        let is_exist = false;
+                        {% if alts %}
+                            {% for alt in alts %}
+                                if ("{{alt.name}}-{{alt.realm.name}}" === `${alt}` + '-' + `${realm}` ){
+                                    is_exist = true;
+                                    add_new_booster_by_value(alt={{alt.id}}); 
+                                }
+                            {% endfor %}
+
+                            if (is_exist == false){
+                                wrong.push(alt + "-" + realm);
+                            }
+                        {% endif %}
+                        
+
+                    }
+                }
+
+                document.getElementById('character_names_help_text').innerHTML += 'Undefind: ' + wrong.length + '<br>';
+                document.getElementById('character_names_help_text').innerText += wrong;
+
+            }else{
+                document.getElementById('character_names_help_text').innerText = '';
+                document.getElementById('character_names_help_text').innerHTML = '';
+
+                char_names.style['border'] = "2px solid #404040";
+            }
+        }
+
+
+        //Add booster by team(Actions)
+        const add_team = document.getElementById("add_team_to_attendance");
+        add_team.addEventListener("change", (event) => {
+            if (add_team.value != 0){
+                {% for booster in team_detail %}
+                    if ("{{booster.team.id}}" == add_team.value){
+                        boosters.push("{{booster.player.id}}");
+                    }
+                {% endfor %}
+                new_booster_by_username(boosters);
+            }
+        });
+
+        //In view page to add boosters
+        function add_booster_in_view(player, alt, role, missing_boss){          
+            add_new_booster();
+            let current_id = booster_object_counter;
+
+            select_alt = document.getElementById('booster_alt_' + current_id);
+            select_username = document.getElementById('booster_username_' + current_id);
+            select_username.value = player;
+            missing_boss_input = document.getElementById('missing_boss_' + current_id);
+            select_role = document.getElementById('booster_role_' + current_id);
+
+            change_username_set_alt(current_id);
+            if (alt != null){
+                select_alt.value = alt;
+            }
+
+            select_role.value = role;
+            missing_boss_input.value = missing_boss;
+        }
+
+
+
+
+        {% if attendance %}
+            function make_change_input(id, value){
+                item = document.getElementById(id);
+                item.value = value;
+            }
+
+            console.log("{{attendance.total_pot}}");
+            make_change_input('btn_submit_attendance', "+ Save");           
+            make_change_input('cycle-select', "{{attendance.cycle.id}}");     
+            make_change_input('run_type_select', "{{attendance.run_type.id}}");           
+            make_change_input('status-select', "{{attendance.status}}");
+            make_change_input('id_date_time', "{{attendance.date_time|date:"Y-m-d H:i"}}");
+            make_change_input('total_pot', "{{attendance.total_pot}}");
+            make_change_input('guild_refunds', "{{guild.refunds}}");
+            make_change_input('boss_kill', "{{attendance.boss_kill}}");
+            make_change_input('guild_in_house_customer_pot', "{{guild.in_house_customer_pot}}");
+            make_change_input('character_names', "{{attendance.characters_name}}");
+            make_change_input('run_note', "{{attendance.run_notes}}");
+            
+            let alt;
+            {% if a_detail %}
+            parent_section.innerHTML = "";
+                {% for booster in a_detail %}
+                    alt = null;
+                    {% if booster.alt %}
+                    alt = "{{booster.alt.id}}";
+                    {% endif %}
+
+                    add_booster_in_view(player="{{booster.player.id}}", alt=alt, role="{{booster.role.id}}", missing_boss="{{booster.missing_boss}}");
+                {% endfor %}
+            {% endif %}
+            
+            {% if current_realm %}
+                {% if realms_count == 1 %}
+                    make_change_input("realm-method-select", "1");
+                {% else %}
+                    make_change_input("realm-method-select", "2");
+                {% endif %}
+
+                roletypechange();
+
+                parent_realm_section.innerHTML = "";
+                {% for realm in current_realm %}
+                    add_new_realm();
+                    realm_select = document.getElementById('realm_' + realm_object_counter);
+                    realm_amount = document.getElementById('realm_amount_' + realm_object_counter);
+
+                    realm_select.value = "{{realm.realm.id}}";
+                    realm_amount.value = "{{realm.amount}}";
+                {% endfor %}
+
+            {% endif %}
+            calculate_shares();
+        {% endif %}
+
+
+        let time_flag = false;
+        element = document.getElementById('time_popup');
+
+        function btn_time_popup(){
+            if (time_flag == false){
+                time_flag = true;
+                element.style['display'] = 'flex';
+            }
+            else{
+                time_flag = false;
+                element.style['display'] = 'none';
+            }
+        }
+
+        function btn_time_add(time){
+            time_input = document.getElementById("id_date_time");
+            time_input_hidden = document.getElementsByName("date_time");
+
+
+            let date = time_input.value.split(" ")[0];
+            let new_time_input = date + " " + time;
+            time_input.value = new_time_input;
+            time_input_hidden[0].value = new_time_input;
+            time_flag = true;
+            btn_time_popup();
+        }
+
+    </script>
+{% endblock %}
