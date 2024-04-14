@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect, reverse
+from django.shortcuts import render, redirect, reverse, HttpResponse
 from django.views.generic import View
 from django.contrib import messages
 from .models import Attendance, AttendanceDetail, Cycle, RunType, Realm, Role, SpecificTime, Guild, CutDistributaion, CurrentRealm
@@ -6,6 +6,7 @@ from .forms import DateTimeBootstrap
 from django.utils import timezone
 from accounts.models import User, Alt, Team, TeamDetail
 import datetime
+import json
 
 class ViewAttendance(View):
     def get(self, request, pk):
@@ -483,3 +484,16 @@ class TimeRemove(View):
             messages.add_message(request, messages.ERROR, 'there is a problem to delete Specific Time')
 
         return redirect('create_attendance')
+    
+
+class RegisterGhostBooster(View):
+    def get(self, request):
+        data = json.loads(request.GET.get('array'))
+        for obj in data:
+            alt = obj.split(" ")[0]
+            realm = obj.split(" ")[1]
+            
+            try:
+                User.objects.create(username="ghost", email="ghost@ghost.com", password="")
+            except:
+                pass

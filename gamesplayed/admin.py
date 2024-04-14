@@ -133,6 +133,11 @@ class RunTypeAdmin(ModelAdmin):
             ),
         }),
     )
+
+    def save_model(self, request, obj, form, change):
+        if (int(obj.guild) + int(obj.community)) != 100:
+            messages.add_message(request, messages.WARNING, "The sum of the entered percentages is not equal to 100")
+        super().save_model(request, obj, form, change)
     
 
 

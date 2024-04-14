@@ -107,7 +107,7 @@
                                                 </div>
                                             </div>
                                             <div class="line-bg-rgb"></div>
-                                            <div></div>
+
 
                                             <div class="row from-top-15" id="parent-realm-detail">
                                             </div>
@@ -142,8 +142,8 @@
                                     realm_section_row.className = 'row';
 
                                     realm_section_row.innerHTML = `
-                                        <div class="col col-6 realm_box_${realm_object_counter}">
-                                            <div class="mb-3">
+                                        <div class="col col-md-6 col-sm-5 realm_box_${realm_object_counter}">
+                                            <div class="">
                                                 <select name="realm_${realm_object_counter}" id="realm_${realm_object_counter}" class="select-custom-style form-select">
                                                     <option value="0">Realm</option>
                                                     {% if realms %}
@@ -155,8 +155,8 @@
                                             </div>
                                         </div>
                                 
-                                        <div class="col col-4 realm_box_${realm_object_counter}">
-                                            <div class="mb-3">
+                                        <div class="col col-sm-4 col-md-4 realm_box_${realm_object_counter}">
+                                            <div class="">
                                                 <input type="number" placeholder="Amount: no separator" name="realm_amount_${realm_object_counter}" id="realm_amount_${realm_object_counter}" class="form-control">
                                             </div>
                                         </div> 
@@ -176,7 +176,7 @@
                                     delete_realm_btn_box_mb_class.className = "mb-3";
 
                                     const delete_realm_btn_box = document.createElement('div');
-                                    delete_realm_btn_box.className = `col col-2 realm_box_${realm_object_counter}`;
+                                    delete_realm_btn_box.className = `col col-sm-3 col-md-2 realm_box_${realm_object_counter}`;
                                     
                                     delete_realm_btn_box_mb_class.appendChild(delete_realm_btn);
                                     delete_realm_btn_box.appendChild(delete_realm_btn_box_mb_class);
@@ -394,15 +394,32 @@
 
                                             <!-- Character names -->
                                             <div class="col-lg-6">
-                                                <label for="character_names" class="form-label">Character names</label>
-                                                <small class="text-danger" id="character_names_help_text"></small>
-                                                <textarea name="character_names" id="character_names" class="color-dark min-height-250px bg-dark-custom"></textarea>
+                                                <div class="flex-row flex-between">
+                                                    <div class="flex-start">
+                                                        <label for="character_names" class="form-label">Character names</label>
+                                                        <small class="text-danger" id="character_names_help_text"></small>
+                                                    </div>
+                                                    <div class="justify-end">
+                                                        <button type="button" onclick="register_ghost()" class="btn btn-porpule color-white-important display-none" id="booster_register">
+                                                            Register all
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <div class="flex-row">
+                                                        <textarea name="character_names" id="character_names" class="color-dark min-height-250px bg-dark-custom"></textarea>
+                                                </div>
                                             </div>
 
                                             <!-- Run Note -->
                                             <div class="col-lg-6">
+                                                <div class="flex-row">
                                                 <label for="run_note" class="form-label">Run Note</label>
-                                                <textarea name="run_note" id="run_note" class="min-height-250px bg-dark-custom"></textarea>
+                                                </div>
+
+                                                <div class="flex-row">
+                                                    <textarea name="run_note" id="run_note" class="min-height-250px bg-dark-custom"></textarea>
+
+                                                </div>
                                             </div>
                                         </div>
                                     </fieldset>
@@ -548,13 +565,13 @@
 
         total_pot.addEventListener('keyup', calculate_shares);
         run_type.addEventListener('onchange', calculate_shares);
-        total_guild.addEventListener('keyup', calculate_shares);
-        community.addEventListener('keyup', calculate_shares);
+        //total_guild.addEventListener('keyup', calculate_shares);
+        //community.addEventListener('keyup', calculate_shares);
         in_house_customer_pot.addEventListener('keyup', calculate_shares);
         refunds.addEventListener('keyup', calculate_shares);
-        collector.addEventListener('keyup', calculate_shares);
-        bank.addEventListener('keyup', calculate_shares);
-        guild_booster.addEventListener('keyup', calculate_shares);
+        //collector.addEventListener('keyup', calculate_shares);
+        //bank.addEventListener('keyup', calculate_shares);
+        //guild_booster.addEventListener('keyup', calculate_shares);
         boss_kill.addEventListener('keyup', calculate_shares);
 
         //Calculate shares for each player
@@ -635,8 +652,10 @@
 
                 cut = document.getElementById('booster_cut_' + index);
                 multiplier = document.getElementById('multiplier_' + index);
+                let round_cut = (parseInt(cut_per_booster * multiplier.value));
 
-                cut.value = parseInt(cut_per_booster * multiplier.value);
+                
+                cut.value = round_cut - (round_cut % 100)  ;
             }
         }
 
@@ -969,11 +988,24 @@
             boosters = [];
         }
 
+        let wrong = [];
+
+        function register_ghost(){
+            for (obj of wrong){
+                let alt = obj.split(" ")[0];
+                let realm = obj.split(" ")[1];
+
+                add_new_booster_by_value();
+            }
+        }
+
 
         //Check Character-name element to if exist any character when keyup event called 
         function char_names_keyup(e) {
             char_names_len = char_names.value.length;
             if (char_names_len > 0){
+                wrong = [];
+                
                 document.getElementById('character_names_help_text').innerText = '';
                 document.getElementById('character_names_help_text').innerHTML = '';
 
@@ -984,7 +1016,6 @@
                 char_names.style['border-radius'] =  "none !important";
                 char_names.style["border-image"] =  "linear-gradient(#d20a3f, #0bc3c6) 30";
 
-                let wrong = [];
 
                 let players = char_names.value.split(',');
                 for (character of players){
@@ -996,7 +1027,7 @@
                         if (alt === undefined){alt = " "};
                         if (realm === undefined){realm = " "};
 
-                        wrong.push(alt + "-" + realm);
+                        wrong.push(alt + " " + realm);
                     }else{
                         let is_exist = false;
                         {% if alts %}
@@ -1008,22 +1039,31 @@
                             {% endfor %}
 
                             if (is_exist == false){
-                                wrong.push(alt + "-" + realm);
+                                wrong.push(alt + " " + realm);
                             }
+                        
                         {% endif %}
                         
 
                     }
                 }
 
-                document.getElementById('character_names_help_text').innerHTML += 'Undefind: ' + wrong.length + '<br>';
+                document.getElementById('character_names_help_text').innerHTML += 'Not registered: ' + wrong.length + '<br>';
                 document.getElementById('character_names_help_text').innerText += wrong;
+
+                if (wrong.length > 0){
+                    document.getElementById("booster_register").style['display'] = 'block';
+                    var arrStr = encodeURIComponent(JSON.stringify(wrong));
+                    $('#booster_register').attr({ href: '{% url 'register_ghost_booster' %}?array=' + arrStr });
+                }
 
             }else{
                 document.getElementById('character_names_help_text').innerText = '';
                 document.getElementById('character_names_help_text').innerHTML = '';
+                document.getElementById("booster_register").style['display'] = 'none';
 
                 char_names.style['border'] = "2px solid #404040";
+                wrong = [];
             }
         }
 
