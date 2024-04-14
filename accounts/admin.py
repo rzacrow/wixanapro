@@ -64,6 +64,7 @@ class AltAdmin(ModelAdmin):
         'change_alts_verified',
         'change_alts_rejected'
     ]
+
     @admin.action(description="Change selected alts to 'Verified'")
     def change_alts_verified(self, request, queryset):
         queryset.update(status='Verified')
@@ -140,6 +141,7 @@ class UserAdmin(BaseUserAdmin, ModelAdmin):
             }
         )
     ]
+
     search_fields = ["username"]
     search_help_text = ["Search in username"]
     
@@ -183,6 +185,7 @@ class UserAdmin(BaseUserAdmin, ModelAdmin):
                 get_wallet = Wallet.objects.get(player__username=obj.username)
             except:
                 Wallet.objects.create(player=obj)
+
         if 'user_type' in form.changed_data:
             if request.user.user_type == 'O':
                 if obj.user_type == 'A':
@@ -199,6 +202,7 @@ class UserAdmin(BaseUserAdmin, ModelAdmin):
             else:
                 raise PermissionDenied()
             Notifications.objects.create(send_to=obj, title="Change User Permission", caption=f"your profile permission changed to the '{obj.user_type}' level by Owner")
+        
         super().save_model(request, obj, form, change)
 
 

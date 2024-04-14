@@ -226,8 +226,8 @@ class Dashboard(View):
             #if get query for add alts exist
             altname =  request.GET.get('altname')
             realm = request.GET.get('realm')
-
             payment_character = request.GET.get('payment_character')
+
             #A flag to identify the user level
             is_superuser = None
             is_user = None
@@ -235,28 +235,44 @@ class Dashboard(View):
             has_perm_view_attendance_admin = None
 
 
+            #if alt dose exist
             if altname and realm:
-                if (altname == '') or (altname == None) or (int(realm) == 0):
-                    messages.add_message(request, messages.ERROR, 'You must fill all required fields')
-                else:
-                    realm_obj = Realm.objects.get(id=realm)
-                    Alt.objects.create(realm=realm_obj, name=altname, player=request.user)
-                    messages.add_message(request, messages.SUCCESS, 'Alt added successfully, after admin approval, it will be placed in your profile')
+                try:
+                    if (altname == '') or (altname == None) or (int(realm) == 0):
+                        messages.add_message(request, messages.ERROR, 'You must fill all required fields')
+                        return redirect('dashboard')
+                    
+                    else:
+                        realm_obj = Realm.objects.get(id=realm)
+                        Alt.objects.create(realm=realm_obj, name=altname, player=request.user)
+                        messages.add_message(request, messages.SUCCESS, 'Character name added successfully, after admin approval, it will be placed in your profile')
+                        return redirect('dashboard')
+                except:
+                    messages.add_message(request, messages.ERROR, "Something went wrong!")
+                    return redirect('dashboard')
 
 
+            #handle active tab with url
             tab = request.GET.get('tab')
             if tab:
                 context['tab'] = tab
 
 
             if payment_character:
-                if payment_character != 0:
-                    at_id = request.GET.get('at_pk')
-                    at_ad = AttendanceDetail.objects.get(id=at_id)
-                    alt = Alt.objects.get(id=payment_character)
-                    at_ad.payment_character = alt
-                    at_ad.save()
-                    return redirect(reverse('dashboard') + '?tab=attendance')
+                try:
+                    if payment_character != 0:
+                        at_id = request.GET.get('at_pk')
+                        at_ad = AttendanceDetail.objects.get(id=at_id)
+                        alt = Alt.objects.get(id=payment_character)
+                        at_ad.payment_character = alt
+                        at_ad.save()
+                        return redirect(reverse('dashboard') + '?tab=attendance')
+                    else:
+                        messages.add_message(request, messages.WARNING, "The payment character field must not be empty")
+                        return redirect(reverse('dashboard') + '?tab=attendance')
+                except:
+                    messages.add_message(request, messages.ERROR, "Something went wrong!")
+                    return redirect('dashboard')
 
 
 
@@ -320,70 +336,91 @@ class Dashboard(View):
         
 
     def post(self, request):
-        profile_form = UpdateProfileForm(request.POST, request.FILES)
-        if profile_form.is_valid():
-            user = User.objects.get(id=request.user.id)
-            data = profile_form.cleaned_data
-            username = data['username']
-            email = data['email']
-            national_code = data['national_code']
-            nick_name = data['nick_name']
-            phone = data['phone']
+        try:
+            profile_form = UpdateProfileForm(request.POST, request.FILES)
+            if profile_form.is_valid():
+                user = User.objects.get(id=request.user.id)
+                data = profile_form.cleaned_data
+                username = data['username']
+                email = data['email']
+                national_code = data['national_code']
+                nick_name = data['nick_name']
+                phone = data['phone']
 
-            try:
-                user.avatar = request.FILES['avatar']
-            except:
-                pass
+                try:
+                    user.avatar = request.FILES['avatar']
+                except:
+                    try:
+                        if request.FILES['avatar']:
+                            messages.add_message(request, messages.WARNING, "Changing the profile image was 'unsuccessful', please note that the format of the image sent must be 'PNG' or 'JPG'")
+                    except:
+                        pass
 
-            if user.discord_id:
-                if (username != user.username) or (email != user.email):
-                    messages.add_message(request, messages.WARNING, "You are not allowed to change your username or email")
+                if user.discord_id:
+                    if (username != user.username) or (email != user.email):
+                        messages.add_message(request, messages.WARNING, "You are not allowed to change your username or email")
+                        user.save()
+                        return redirect('dashboard')
+
+                #check duplicate username 
+                username_exist = User.objects.filter(username=username)
+                if username_exist.exists():
+                    if (username_exist.exclude(username=user.username)):
+                        messages.add_message(request, messages.WARNING, "Another account is using this username")
+                        user.save()
+                        return redirect('dashboard')
+
+                #check duplicate email 
+                email_exist = User.objects.filter(email=email)
+                if email_exist.exists():
+                    if (email_exist.exclude(email=user.email)):
+                        messages.add_message(request, messages.WARNING, "Another account is using this email")
+                        user.save()
+                        return redirect('dashboard')
+                    
+
+                
+                #check duplicate national_code 
+                national_code_exist = User.objects.filter(national_code=national_code)
+                if national_code_exist.exists():
+                    if (national_code_exist.exclude(national_code=user.national_code)):
+                        messages.add_message(request, messages.WARNING, "Another account is using this national code")
+                        user.save()
+                        return redirect('dashboard')
+
+                #update profile
+                user.username = username
+                user.email = email
+                user.national_code = national_code
+                user.phone = phone
+                user.nick_name = nick_name
+                user.save()
+
+                #if profile was filled 100%, unlock permissions
+                gp = Group.objects.get_or_create(name="COMPLETED_PROFILE")
+                ct_team = ContentType.objects.get_for_model(Team)
+                ct_loan = ContentType.objects.get_for_model(Loan)
+                ct_transaction = ContentType.objects.get_for_model(Transaction)
+                perms = Permission.objects.filter(Q(content_type=ct_team) | Q(content_type=ct_loan) | Q(content_type=ct_transaction))
+
+                if ((user.phone is not None) and (user.phone != "")) and ((user.national_code is not None) and (user.national_code != "")) and ((user.email is not None) and (user.email != "")):
+                    gp[0].permissions.set(perms)
+                    gp[0].save()
+                    user.groups.add(gp[0]) 
                     user.save()
-                    return redirect('dashboard')
+                else:
+                    user.groups.remove(gp[0]) 
+                    user.save()
 
+                messages.add_message(request, messages.SUCCESS, "Profile updated successfully")
+                return redirect('dashboard')
             
-            username_exist = User.objects.filter(username=username)
-            if username_exist.exists():
-                if (username_exist.exclude(username=user.username)):
-                    messages.add_message(request, messages.WARNING, "Another account is using this username")
-                    user.save()
-                    return redirect('dashboard')
-
-            email_exist = User.objects.filter(email=email)
-            if email_exist.exists():
-                if (email_exist.exclude(email=user.email)):
-                    messages.add_message(request, messages.WARNING, "Another account is using this email")
-                    user.save()
-                    return redirect('dashboard')
-
-            user.username = username
-            user.email = email
-            user.national_code = national_code
-            user.phone = phone
-            user.nick_name = nick_name
-            user.save()
-
-            gp = Group.objects.get_or_create(name="COMPLETED_PROFILE")
-            ct_team = ContentType.objects.get_for_model(Team)
-            ct_loan = ContentType.objects.get_for_model(Loan)
-            ct_transaction = ContentType.objects.get_for_model(Transaction)
-            perms = Permission.objects.filter(Q(content_type=ct_team) | Q(content_type=ct_loan) | Q(content_type=ct_transaction))
-
-            if ((user.phone is not None) and (user.phone != "")) and ((user.national_code is not None) and (user.national_code != "")) and ((user.email is not None) and (user.email != "")):
-                gp[0].permissions.set(perms)
-                gp[0].save()
-                user.groups.add(gp[0]) 
-                user.save()
             else:
-                user.groups.remove(gp[0]) 
-                user.save()
-
-            messages.add_message(request, messages.SUCCESS, "Profile updated successfully")
-            return redirect('dashboard')
-        
-        else:
-            messages.add_message(request, messages.WARNING, profile_form.errors)
-            return redirect('dashboard')
+                messages.add_message(request, messages.WARNING, profile_form.errors)
+                return redirect('dashboard')
+        except:
+                messages.add_message(request, messages.WARNING, "Something went wrong!")
+                return redirect('dashboard')
 
 
 class CreateTeam(View):

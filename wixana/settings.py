@@ -89,7 +89,7 @@ DATABASES = {
 }
 
 CSRF_COOKIE_SECURE = True
-CSRF_TRUSTED_ORIGINS = ["https://wixana.ir", "https://*.wixana.ir", "https://*.wixana.ir", "https://www.wixana.ir"]
+CSRF_TRUSTED_ORIGINS = ["https://wixana.ir", "https://*.wixana.ir", "https://*.wixana.ir", "https://www.wixana.ir", "https://127.0.0.1", "http://127.0.0.1"]
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators

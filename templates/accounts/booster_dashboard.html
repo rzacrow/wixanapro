@@ -91,6 +91,7 @@
                         </button>
                         </a>
                     </div>
+                    <!-- End side bar -->
 
 
 
@@ -111,8 +112,8 @@
                                             <div class=" dashboard-detail-item">                                        
                                                 <div class="content">
 
+                                                        <!-- Accounts Detail -->
                                                         <div class="row padding-25">
-
                                                             <div class="col-lg-2">
                                                             </div>
 
@@ -135,10 +136,10 @@
                                                                     <p class="min-height-200 center-r-c">Nothing to show</p>
                                                                 {% endif %}
                                                             </div>
-
                                                             <div class="col-lg-2">
                                                             </div>
                                                         </div>
+                                                        <!-- End accounts detail -->
                                                 </div>
                                             </div>
                                         
@@ -146,6 +147,8 @@
                                         <div class="col from-top-25 dashboard-detail-item">    
                                             <div class="content">
 
+
+                                                <!-- Character name -->
                                                 <div class="row">
                                                     <div class="col-lg-2">
 
@@ -156,7 +159,7 @@
                                                                     <p class="center-icon-text">
                                                                         <span class="material-symbols-outlined">
                                                                             chess
-                                                                            </span>&nbsp;# Alts
+                                                                            </span>&nbsp;# Character name
                                                                     </p>
                                                                     {% if alts %}
                                                                         <table class="table">
@@ -185,7 +188,7 @@
                                                                 </div>
 
                                                                 <div class="padding-25">
-                                                                    <h6>Add Alt</h6>
+                                                                    <h6>Add character</h6>
                                                                     <form class="from-top-25">
                                                                         <div class="mb-3">
                                                                             <input type="text" placeholder="name..." class="form-control" name="altname">
@@ -214,6 +217,7 @@
                                                                     
                                                                 </div>
                                                 </div>
+                                                <!-- End character name -->
                                             </div>
                                         </div>
                                         {% endif %}
@@ -675,7 +679,7 @@
                                                                     <form method="get" class="row">
                                                                         <div class="col col-9">
                                                                             <select name="payment_character" id="payment_character_{{match.id}}" class="payment_character">
-                                                                                <option value="0">Alt</option>
+                                                                                <option value="0">Payment character</option>
                                                                                 {% for alt in alts%}
                                                                                 <option value="{{alt.id}}">
                                                                                     {{alt.name}}
@@ -782,7 +786,7 @@
 
                                                                 <div class="mb-3">
                                                                     <select name='alt' id="select-alt">
-                                                                        <option value="0">Alts</option>
+                                                                        <option value="0">Character name</option>
                                                                         {% if verified_alts %}
                                                                             {% for alt in verified_alts %}
                                                                                 <option value="{{alt.id}}">{{alt.name}},{{alt.realm.name}}</option>
@@ -1096,7 +1100,7 @@
                                                                     {% csrf_token %}
                                                                     <div class="mb-3">
                                                                         <select name='alt'>
-                                                                            <option value="0">--- Your alts ---</option>
+                                                                            <option value="0">Character name</option>
                                                                             {% if verified_alts %}
                                                                                 {% for alt in verified_alts %}
                                                                                     <option value="{{alt.id}}">{{alt.name}},{{alt.realm.name}}</option>
