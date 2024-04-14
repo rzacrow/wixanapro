@@ -218,13 +218,19 @@ class Loan(models.Model):
         ('Reject','Reject'),
     )
 
+    LOAN_METHOD_CHOICES = (
+        ('CUT', 'CUT'),
+        ('IR', 'IR'),
+    )
+
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     amount = models.IntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
     alt = models.ForeignKey(Alt, on_delete=models.CASCADE, blank=True, null=True)
+    card = models.ForeignKey(CardDetail, on_delete=models.PROTECT, blank=True, null=True)
     note = models.CharField(max_length=255, blank=True, null=True)
     loan_status = models.CharField(max_length=7, default='Pending', choices=LOAN_STAUTS)
-
+    method = models.CharField(max_length=3, choices=LOAN_METHOD_CHOICES, blank=True, null=True)
     def __str__(self) -> str:
         name = self.user.username
         if self.user.nick_name:

@@ -794,14 +794,14 @@
                                                                         {% endif %}
                                                                     </select>
 
-                                                                    {% if card_detail.cards %}
                                                                     <select name='card' class="display-none" id="select-card">
                                                                         <option value="0">Card</option>
+                                                                        {% if card_detail.cards %}
                                                                             {% for card in card_detail.cards %}
                                                                                 <option value="{{card.id}}">{{card.split_show_card}}</option>
                                                                             {% endfor %}
+                                                                        {% endif %}
                                                                     </select>
-                                                                    {% endif %}
                                                                 </div>
 
                                                                 <label class="form-label">Amount</label>
@@ -1098,9 +1098,31 @@
                                                         <div class="alert">
                                                                 <form method="post" action="{% url 'loan_application' %}" onsubmit="return confirm('Do you really want to send the form?');">
                                                                     {% csrf_token %}
+
                                                                     <div class="mb-3">
-                                                                        <select name='alt'>
-                                                                            <option value="0">Character name</option>
+                                                                        <label class="form-label" for="loan_method">Loan method</label>
+                                                                        <select name="loan_method" id="loan_method">
+                                                                            <option value="0">Gold/Cut</option>
+                                                                            <option value="1">IR</option>
+                                                                        </select>
+                                                                    </div>
+
+                                                                    <div class="mb-3">
+                                                                        <label class="form-label display-none" for="loan_select_card" id="loan_select_card_label">Bank card</label>
+                                                                        <select name='loan_card' class="display-none" id="loan_select_card">
+                                                                            <option value="0">Card</option>
+                                                                            {% if card_detail.cards %}
+                                                                                {% for card in card_detail.cards %}
+                                                                                    <option value="{{card.id}}">{{card.split_show_card}}</option>
+                                                                                {% endfor %}
+                                                                            {% endif %}
+                                                                        </select>
+                                                                    </div>
+
+                                                                    <div class="mb-3">
+                                                                        <label class="form-label" for="loan_character_payment" id="loan_character_payment_label">Character</label>
+                                                                        <select name="loan_character_payment" id="loan_character_payment">
+                                                                            <option value="0">Payment character</option>
                                                                             {% if verified_alts %}
                                                                                 {% for alt in verified_alts %}
                                                                                     <option value="{{alt.id}}">{{alt.name}},{{alt.realm.name}}</option>
@@ -1115,6 +1137,31 @@
                                                         </div>
                                                 </div>
                                             </div>
+
+                                            <script>
+                                                document.getElementById('loan_method').addEventListener('change', function() {
+                                                    if (this.value == 1){
+                                                        document.getElementById("id_amount").placeholder = "Enter amount in 'Tomans(IR)'";
+
+                                                        document.getElementById("loan_character_payment").style['display'] = 'none';
+                                                        document.getElementById("loan_character_payment_label").style['display'] = 'none';
+
+                                                        document.getElementById("loan_select_card").style['display'] = 'block';
+                                                        document.getElementById("loan_select_card_label").style['display'] = 'block';
+                                                    } else{
+                                                        document.getElementById("id_amount").placeholder = "Unit per 'K'";
+
+                                                        
+                                                        document.getElementById("loan_select_card").style['display'] = 'none';
+                                                        document.getElementById("loan_select_card_label").style['display'] = 'none';
+
+
+                                                        document.getElementById("loan_character_payment").style['display'] = 'block';
+                                                        document.getElementById("loan_character_payment_label").style['display'] = 'block';
+
+                                                    }
+                                                  });
+                                            </script>
 
 
                                             {% else %}
@@ -1138,18 +1185,32 @@
                                                                     </div>
 
                                                                     <div class="alert alert-dark flex-between">
-                                                                        <div>Alt:</div>
-                                                                        <div>{% if debts %}{{debts.loan.alt}}{% else %}{% endif %}</div>
+                                                                        <div>Method:</div>
+                                                                        <div>{% if debts %}{{debts.loan.method}}{% else %}{% endif %}</div>
                                                                     </div>
+
+                                                                    {% if debts %}
+                                                                        {% if debts.loan.method == 'CUT' %}
+                                                                            <div class="alert alert-dark flex-between">
+                                                                                <div>Paid character:</div>
+                                                                                <div>{% if debts %}{{debts.loan.alt}}{% else %}{% endif %}</div>
+                                                                            </div>
+                                                                        {% else %}
+                                                                            <div class="alert alert-dark flex-between">
+                                                                                <div>Paid card:</div>
+                                                                                <div>{% if debts %}{{debts.loan.card}}{% else %}{% endif %}</div>
+                                                                            </div>
+                                                                        {% endif %}
+                                                                    {% endif %}
 
 
                                                                     <div class="alert alert-warning flex-between">
                                                                         <div>Amount:</div>
-                                                                        <div>{% if debts %}{{debts.debt_amount}} K{% else %}0{% endif %}</div>
+                                                                        <div>{% if debts %}{{debts.debt_amount}} {% if debts.loan.method == 'CUT' %}K{% else %}T{% endif %}{% else %}0{% endif %}</div>
                                                                     </div>
                                                                     
                                                                     <button type="button" class="btn btn-porpule color-white full-width center-icon-text" id="btn-payment-loan" data-bs-toggle="modal" data-bs-target="#paymentLoan">
-                                                                        <img src="{% static 'accounts/images/wallet.png' %}" class="img-icon">&nbsp;Payment the debt
+                                                                        <img src="{% static 'accounts/images/wallet.png' %}" class="img-icon">&nbsp;Debt payment
                                                                     </button>                                                                  
                                                         </div>
 
@@ -1185,7 +1246,7 @@
                                                                         <td class="bg-transparent color-white-important">
                                                                             {{lh.created_at|date:"Y-m-d H:i"}}
                                                                         </td>
-                                                                        <td class="bg-transparent color-white-important">{{lh.amount}} K</td>
+                                                                        <td class="bg-transparent color-white-important">{{lh.amount}} {% if lh.method == 'CUT' %}K {% else %}T {% endif %}</td>
                                                                         <td class="bg-transparent color-white-important">{{lh.loan_status}}</td>
                                                                     </tr>
                                                                 {% endfor %}
@@ -1474,7 +1535,7 @@
                         <div class="modal-body">
                             <h6>Payment method:</h6>
                             <div class="row">
-                                <div class="col-12"><button class="btn btn-porpule color-white-important from-top-15 full-width" data-bs-target="#paymentLoanWallet" data-bs-toggle="modal"><img src="{% static 'accounts/images/wallet2.png' %}" class="img-icon">&nbsp;Payment via wallet</button></div>
+                                <div class="col-12"><button class="btn btn-porpule color-white-important from-top-15 full-width" data-bs-target="#paymentLoanWallet" data-bs-toggle="modal" id="btn-payment-from-wallet"><img src="{% static 'accounts/images/wallet2.png' %}" class="img-icon">&nbsp;Payment via wallet</button></div>
                                 <div class="col-12"><button class="btn btn-porpule color-white-important from-top-15 full-width" data-bs-target="#paymentLoanTrackingCode" data-bs-toggle="modal" id="btn-tracking-code"><img src="{% static 'accounts/images/card.png' %}" class="img-icon">&nbsp;Payment via tracking code</button></div>
                             </div>
                         </div>
@@ -1490,9 +1551,12 @@
                             <h1 class="modal-title fs-5" id="paymentLoanWalletLabel">WIXANA</h1>
                         </div>
                         <div class="modal-body">
-                            <h6>Your debt: {% if debts %}<span id="debt_in_cut">{{debts.debt_amount}}</span> K{% else %}0{% endif %}</h6>
+                            {% if debts %}
+                            <h6>Your debt: <span id="debt_in_cut">{{debts.debt_amount}}</span> {% if debts.loan.method == 'CUT' %}K{% else %}T{% endif %}</h6>
+                            {% if debts.loan.method == 'IR' %}<h6>Your debt to CUT: <span id="debt_to_cut_2"></span> K</h6>{% endif %}
                             <h6>Your balance: {% if wallet_report %}{{wallet_report.amount}}{% else %}Not define{% endif %}</h6>
 
+                            {% endif %}
                             <form method="post" action="{% url 'payment_debt_from_wallet' %}?method=wallet" class="from-top-15">
                                 {% csrf_token %}
                                 <input type="hidden" value="{{debts.id}}" name="debt_id">
@@ -1516,11 +1580,17 @@
                             <h1 class="modal-title fs-5" id="paymentLoanTrackingCodeLabel">WIXANA</h1>
                         </div>
                         <div class="modal-body">
-                            <h6>Your debt: {% if debts %}<span id="debt_in_cut">{{debts.debt_amount}}</span> K{% else %}0{% endif %}</h6>
-                            <h6>Your debt to IR: <span id="debt_to_ir"></span> T</h6>
-                            <hr>
-                            <small>Please transfer the above amount in Tomans to the following card number. Then enter your deposit tracking code in the box below.</small>
-                            
+                            {% if debts %}
+                                <h6>Your debt: <span id="debt_in_cut">{{debts.debt_amount}}</span> {% if debts.loan.method == 'CUT' %}K{% else %}T{% endif %}</h6>
+                                {% if debts.loan.method == 'CUT' %}
+                                    <h6>Your debt to IR: <span id="debt_to_ir"></span> T</h6>
+                                {% else %}
+                                    <h6>Your debt to CUT: <span id="debt_to_cut"></span> K</h6>
+                                {% endif %}
+                                    <hr>
+                                    <small>Please transfer the above amount in Tomans to the following card number. Then enter your deposit tracking code in the box below.</small>
+                            {% endif %}
+
                             {% if wixana_card_detail %}
                                 <div class="alert alert-dark from-top-15">
                                     <small class="flex-between">Card number: {{wixana_card_detail.card_number}}</small>
@@ -1538,7 +1608,7 @@
                                     </div>
                                 </form>
                             {% else %}
-                                <small>Admin's bank card information has not been registered</small>
+                                <small class="color-red from-top-25">"Admin's bank card information has not been registered"</small>
                             {% endif %}
                         </div>
                         <div class="modal-footer">
@@ -1558,17 +1628,47 @@
                     }, 100);
                 }
                 
-                
+                waitForLoad2("subm", function(){
+                    document.getElementById("btn-payment-from-wallet").onclick = function()
+                    {
+                        {% if debts %}
+                            var debt = {{debts.debt_amount}};
+                            {% if debts.loan.method == 'IR' %}
+                                {% if cut_per_ir %}
+                                    document.getElementById('debt_to_cut_2').innerText = debt / {{cut_per_ir}};
+                                    document.getElementById('debt-in-ir').value = debt;
+                                {% else %}
+                                    document.getElementById('debt_to_cut_2').innerText = "No amount has been entered for conversion by admin";
+                                    document.getElementById('debt-in-ir').value = 0;
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+                    }
+                });
+
+
                 waitForLoad2("subm", function(){
                     document.getElementById("btn-tracking-code").onclick = function()
                     {
-                        var debt = {{debts.debt_amount}};
-                        {% if cut_per_ir %}
-                        document.getElementById('debt_to_ir').innerText = debt * {{cut_per_ir}};
-                        document.getElementById('debt-in-ir').value = debt * {{cut_per_ir}};
-                        {% else %}
-                        document.getElementById('debt_to_ir').innerText = "No amount has been entered for conversion by admin";
-                        document.getElementById('debt-in-ir').value = 0;
+                        {% if debts %}
+                            var debt = {{debts.debt_amount}};
+                            {% if debts.loan.method == 'CUT' %}
+                                {% if cut_per_ir %}
+                                    document.getElementById('debt_to_ir').innerText = debt * {{cut_per_ir}};
+                                    document.getElementById('debt-in-ir').value = debt * {{cut_per_ir}};
+                                {% else %}
+                                    document.getElementById('debt_to_ir').innerText = "No amount has been entered for conversion by admin";
+                                    document.getElementById('debt-in-ir').value = 0;
+                                {% endif %}
+                            {% else%}
+                                {% if cut_per_ir %}
+                                    document.getElementById('debt_to_cut').innerText = debt / {{cut_per_ir}};
+                                    document.getElementById('debt-in-ir').value = debt;
+                                {% else %}
+                                    document.getElementById('debt_to_cut').innerText = "No amount has been entered for conversion by admin";
+                                    document.getElementById('debt-in-ir').value = 0;
+                                {% endif %}
+                            {% endif %}
                         {% endif %}
                     }
                 });

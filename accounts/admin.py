@@ -234,39 +234,58 @@ class TeamAdmin(ModelAdmin):
 
 
 @admin.register(Loan)
-class Loan(ModelAdmin):
-    list_display = ['user', 'alt', 'loan_status','amount']
-    ordering = ['-created_at']
+class LoanAdmin(ModelAdmin):
+        
+        @admin.display(description="Amount")
+        def amount_disp(self, obj):
+            if obj.method == 'CUT':
+                return f'{obj.amount} K'
+            else:
+                return f'{obj.amount} T'
 
-    list_filter = ['loan_status', 'created_at']
+    
+        list_display = ['user', 'method', 'loan_status','amount_disp']
+        ordering = ['-created_at']
 
-    @admin.action(description="Change status to 'Accept'")
-    def change_status_accept(self, request, queryset):
-        queryset.update(loan_status="Accept")
+        list_filter = ['loan_status', 'created_at']
 
-    @admin.action(description="Change status to 'Reject'")
-    def change_status_reject(self, request, queryset):
-        queryset.update(loan_status="Reject")
 
-    actions = [
-        'change_status_reject',
-        'change_status_accept'
-    ]
-
-    def save_model(self, request, obj, form, change):
-        super().save_model(request, obj, form, change)
-        if 'loan_status' in form.changed_data:
-            if obj.loan_status == 'Reject':
-                Notifications.objects.create(send_to=obj.user, title="Loan request", caption="Your loan request was rejected by the admin")
-                obj.loan_status = 'Reject'
-                obj.save()
-
-            if obj.loan_status == 'Accept':
-                Notifications.objects.create(send_to=obj.user, title="Loan request", caption="Your loan request was Accepted by the admin")
-                obj.loan_status = 'Accept'
-                obj.save()
+        def change_status_accept_do(self, request, objects):
+            for obj in objects:
                 Debt.objects.create(loan=obj, debt_amount=obj.amount, paid_status='UnPaid')
-                
+
+
+        @admin.action(description="Change status to 'Accept'")
+        def change_status_accept(self, request, queryset):
+            queryset.update(loan_status="Accept")
+            list_ids = queryset.values_list('id', flat=True)
+            objects = Loan.objects.filter(id__in=list_ids)
+            self.change_status_accept_do(request=request, objects=objects)
+
+
+        @admin.action(description="Change status to 'Reject'")
+        def change_status_reject(self, request, queryset):
+            queryset.update(loan_status="Reject")
+
+        actions = [
+            'change_status_reject',
+            'change_status_accept'
+        ]
+
+        def save_model(self, request, obj, form, change):
+            super().save_model(request, obj, form, change)
+            if 'loan_status' in form.changed_data:
+                if obj.loan_status == 'Reject':
+                    Notifications.objects.create(send_to=obj.user, title="Loan request", caption="Your loan request was rejected by the admin")
+                    obj.loan_status = 'Reject'
+                    obj.save()
+
+                if obj.loan_status == 'Accept':
+                    Notifications.objects.create(send_to=obj.user, title="Loan request", caption="Your loan request was Accepted by the admin")
+                    obj.loan_status = 'Accept'
+                    obj.save()
+                    Debt.objects.create(loan=obj, debt_amount=obj.amount, paid_status='UnPaid')
+   
 
 
 @admin.register(WixanaBankDetail)
@@ -276,6 +295,8 @@ class WixanaBankDetailAdmin(ModelAdmin):
 
 @admin.register(PaymentDebtTrackingCode)
 class PaymentDebtTrackingCodeAdmin(ModelAdmin):
+
+
     def changeform_view(self, request, obj, form, change):
         if request.user.user_type != 'O':
             raise PermissionDenied()
@@ -292,21 +313,52 @@ class PaymentDebtTrackingCodeAdmin(ModelAdmin):
     def status(self, obj):
         return obj.payment_debt_status
     
-    @admin.display(description='Amount in IR')
+    @admin.display(description='Amount')
     def amount_in_ir(self, obj):
-        return obj.debt_amount_IR
-    list_display = ['username','tracking_code', 'status', 'amount_in_ir']
+        if obj.debt.loan.method == 'CUT':
+            return f"{obj.debt_amount_IR} K"
+        else:
+            return f"{obj.debt_amount_IR} T"
+
+    @admin.display(description='Method')
+    def debt_method(self, obj):
+        name = obj.debt.loan.method
+        return name
+    
+
+
+    list_display = ['username','tracking_code', 'status', 'amount_in_ir', 'debt_method']
     ordering = ['-created']
 
+
+    def change_status_accept_do(self, request, objects):
+        for obj in objects:
+            Notifications.objects.create(send_to=obj.debt.loan.user, title="Payment receipts", caption="Your payment receipt was Accepted by the admin, Your debt has been settled")
+            debt = Debt.objects.get(id=obj.debt.id)
+            debt.paid_status = 'Paid'
+            debt.debt_amount = 0
+            debt.save()
+
+
+    def change_status_reject_do(self, request, objects):
+        for obj in objects:
+            Notifications.objects.create(send_to=obj.debt.loan.user, title="Payment receipts", caption="Your payment receipt was rejected by the admin")
 
 
     @admin.action(description="Change status to 'Accepted'")
     def change_status_accept(self, request, queryset):
         queryset.update(payment_debt_status="Accepted")
+        list_ids = queryset.values_list('id', flat=True)
+        objects = PaymentDebtTrackingCode.objects.filter(id__in=list_ids)
+        self.change_status_accept_do(request, objects)
+
 
     @admin.action(description="Change status to 'Rejected'")
     def change_status_reject(self, request, queryset):
         queryset.update(payment_debt_status="Rejected")
+        list_ids = queryset.values_list('id', flat=True)
+        objects = PaymentDebtTrackingCode.objects.filter(id__in=list_ids)
+        self.change_status_reject_do(request, objects)
 
     actions = [
         'change_status_reject',
@@ -345,7 +397,23 @@ class DebtAdmin(ModelAdmin):
             name = obj.loan.user.nick_name
         return name
     
-    list_display = ['username', 'debt_amount', 'paid_status']
+
+    
+    @admin.display(description="Method")
+    def debt_method(self, obj):
+        name = obj.loan.method
+        return name
+    
+
+    @admin.display(description='Debt amount')
+    def amount_in_ir(self, obj):
+        if obj.loan.method == 'CUT':
+            return f"{obj.debt_amount} K"
+        else:
+            return f"{obj.debt_amount} T"
+
+    
+    list_display = ['username', 'amount_in_ir', 'paid_status', 'debt_method']
 
 class CardDetailInline(TabularInline):
     model = CardDetail

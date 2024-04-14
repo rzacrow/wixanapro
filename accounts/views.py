@@ -938,46 +938,65 @@ class RemoveAltsResponse(View):
 
 class LoanApplication(View):
     def post(self, request):
-        user = request.user
+        try:
+            user = request.user
 
-        if user.is_authenticated and user.has_perm('accounts.add_loan'):
-            debts = Debt.objects.filter(loan__user=request.user, paid_status='Unpaid')
-            loans = Loan.objects.filter(user=request.user, loan_status='Pending')
-            #if user have an unpaid loan
-            if debts:
-                messages.add_message(request, messages.WARNING, 'You have an unpaid loan')
-                return redirect(reverse('dashboard') + '?tab=loan')
-                    
-            if loans:
-                messages.add_message(request, messages.WARNING, 'You have an unchecked loan request')
-                return redirect(reverse('dashboard') + '?tab=loan')        
-            
-            
+            if user.is_authenticated and user.has_perm('accounts.add_loan'):
+                debts = Debt.objects.filter(loan__user=request.user, paid_status='Unpaid')
+                loans = Loan.objects.filter(user=request.user, loan_status='Pending')
+                #if user have an unpaid loan
 
-            form = LoanForm(request.POST)
-            if form.is_valid():
-                data = form.cleaned_data
-                try:
-                    alt = Alt.objects.get(id=form.data['alt'])
-                    note = data['note']
-                    
-                    Loan.objects.create(alt=alt, note=note, amount=data['amount'], user=request.user)
-                    messages.add_message(request, messages.SUCCESS, 'Your request for a loan has been registered')
-                    admins = User.objects.filter(user_type='O')
-                    requester_name = request.user.username
-                    if request.user.nick_name:
-                        requester_name = request.user.nick_name
-
-                    for admin in admins:
-                        Notifications.objects.create(send_to=admin, title='New Loan Request', caption=f"You have a new loan request with the amount of {data['amount']} K from user {requester_name}")
+                if debts:
+                    messages.add_message(request, messages.WARNING, 'You have an unpaid loan')
                     return redirect(reverse('dashboard') + '?tab=loan')
-                except:
+                        
+                if loans:
+                    messages.add_message(request, messages.WARNING, 'You have an unchecked loan request')
+                    return redirect(reverse('dashboard') + '?tab=loan')        
+                
+                
+
+                form = LoanForm(request.POST)
+                if form.is_valid():
+                    data = form.cleaned_data
+                    try:
+                        #if loan method was Gold/Cut
+                        if form.data['loan_method'] == '0':
+                            alt = Alt.objects.get(id=form.data['loan_character_payment'])
+                            note = data['note']
+                            
+                            Loan.objects.create(alt=alt, note=note, amount=data['amount'], user=request.user, method="CUT")
+                            messages.add_message(request, messages.SUCCESS, 'Your request for a loan has been registered')
+                            admins = User.objects.filter(user_type='O')
+                            requester_name = request.user.username
+                            if request.user.nick_name:
+                                requester_name = request.user.nick_name
+
+                        else:
+                        #if loan method was IR
+                            card = CardDetail.objects.get(id=form.data['loan_card'])
+                            note = data['note']
+                            
+                            Loan.objects.create(note=note, amount=data['amount'], user=request.user, card=card, method="IR")
+                            messages.add_message(request, messages.SUCCESS, 'Your request for a loan has been registered')
+                            admins = User.objects.filter(user_type='O')
+                            requester_name = request.user.username
+                            if request.user.nick_name:
+                                requester_name = request.user.nick_name
+
+                        for admin in admins:
+                            Notifications.objects.create(send_to=admin, title='New Loan Request', caption=f"You have a new loan request from {requester_name}")
+                        return redirect(reverse('dashboard') + '?tab=loan')
+
+                    except:
+                        messages.add_message(request, messages.WARNING, 'Your request is not valid')
+                        return redirect(reverse('dashboard') + '?tab=loan')
+                else:
                     messages.add_message(request, messages.WARNING, 'Your request is not valid')
-                    return redirect(reverse('dashboard') + '?tab=loan')
             else:
-                messages.add_message(request, messages.WARNING, 'Your request is not valid')
-        else:
-            messages.add_message(request, messages.ERROR, "You do not have permission to do this. Please complete your profile")
+                messages.add_message(request, messages.ERROR, "You do not have permission to do this. Please complete your profile")
+        except:
+            messages.add_message(request, messages.WARNING, 'Something went wrong!')
 
         return redirect(reverse('dashboard') + '?tab=loan')
 
@@ -988,14 +1007,26 @@ class DebtPaymentFromWallet(View):
             method = request.GET['method']
             if method == 'wallet':
                 debt = Debt.objects.get(id=request.POST['debt_id'])
-                amount = debt.debt_amount * 1000
-                wallet = Wallet.objects.get(player=debt.loan.user)
+                if debt.loan.method == 'CUT':
+                    amount = debt.debt_amount * 1000
+                    wallet = Wallet.objects.get(player=debt.loan.user)
 
-                #if wallet balance is insufficient
-                if amount > wallet.amount:
-                    messages.add_message(request, messages.WARNING, 'Your account balance is insufficient')
-                    return redirect(reverse('dashboard') + '?tab=loan')
-                
+                    #if wallet balance is insufficient
+                    if amount > wallet.amount:
+                        messages.add_message(request, messages.WARNING, 'Your account balance is insufficient')
+                        return redirect(reverse('dashboard') + '?tab=loan')
+                    
+                else:
+                    cut_in_ir = CutInIR.objects.last()
+                    amount = ((int(debt.debt_amount) // int(cut_in_ir.amount)) * 1000)
+                    wallet = Wallet.objects.get(player=debt.loan.user)
+
+                    #if wallet balance is insufficient
+                    if amount > wallet.amount:
+                        messages.add_message(request, messages.WARNING, 'Your account balance is insufficient')
+                        return redirect(reverse('dashboard') + '?tab=loan')
+                    
+
                 debt.paid_status = 'Paid'
                 debt.debt_amount = 0
                 debt.save()
@@ -1007,8 +1038,11 @@ class DebtPaymentFromWallet(View):
                 if debt.loan.user.nick_name:
                     name = debt.loan.user.nick_name
                 for admin in admins:
-                    Notifications.objects.create(send_to=admin, title='Debt deposit', caption=f"User {name} paid debt with {amount // 1000} K amount via wallet")
+                    Notifications.objects.create(send_to=admin, title='Debt deposit', caption=f"User {name} paid debt with {amount} K amount via wallet")
+                
+                messages.add_message(request, messages.SUCCESS, 'Your debt has been settled')
                 return redirect(reverse('dashboard') + '?tab=loan')
+                    
             
 
             elif method == 'tracking_code':

@@ -16,7 +16,7 @@ SECRET_KEY = 'django-insecure-8_+*_os2v!=$iuph*9hys-fld@arnb2ilnyuu#t&$nv2z@m)a0
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['django-app']
+ALLOWED_HOSTS = ['127.0.0.1'] #develop:django-app
 
 #User model
 AUTH_USER_MODEL = 'accounts.User'
@@ -83,7 +83,7 @@ DATABASES = {
         'NAME': os.environ.get('DATABASE-NAME', 'wixana'),
         'USER': os.environ.get('DATABASE-USER', 'postgres'),
         'PASSWORD': os.environ.get('DATABASE-PASSWORD', 'Reza2001'),
-        'HOST': os.environ.get('DATABASE-HOST', 'database'),
+        'HOST': os.environ.get('DATABASE-HOST', 'localhost'), #develop:database
         'PORT': os.environ.get('DATABASE-PORT', '5432')
     }
 }
@@ -199,7 +199,7 @@ UNFOLD = {
                     #    "link": reverse_lazy("admin:gamesplayed_attendance_changelist"),
                     #},
                     {
-                        "title": _("Payments"),
+                        "title": _("Cycle payments"),
                         "icon": "point_of_sale",
                         "link": reverse_lazy("admin:gamesplayed_payment_changelist"),
                     },
@@ -219,7 +219,7 @@ UNFOLD = {
                         "link": reverse_lazy("admin:gamesplayed_runtype_changelist"),
                     },
                     {
-                        "title": _("Transaction"),
+                        "title": _("Payment request"),
                         "icon": "credit_score",
                         "link": reverse_lazy("admin:accounts_transaction_changelist"),
                     },
