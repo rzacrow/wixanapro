@@ -163,3 +163,5 @@ class CutInIR(models.Model):
     date_time = models.DateField(auto_now=True)
     def __str__(self) -> str:
         return str(self.amount)
+    
+

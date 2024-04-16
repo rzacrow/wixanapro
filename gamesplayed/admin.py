@@ -119,7 +119,7 @@ class CurrentRealmInline(TabularInline):
 
 @admin.register(Role)
 class RoleAdmin(ModelAdmin):
-    list_display = ['name', 'ratio']
+    list_display = ['id','name', 'ratio']
 
 @admin.register(RunType)
 class RunTypeAdmin(ModelAdmin):
@@ -135,7 +135,9 @@ class RunTypeAdmin(ModelAdmin):
     )
 
     def save_model(self, request, obj, form, change):
-        if (int(obj.guild) + int(obj.community)) != 100:
+        sum_of_value = (float(obj.guild) + float(obj.community))
+
+        if sum_of_value != 100:
             messages.add_message(request, messages.WARNING, "The sum of the entered percentages is not equal to 100")
         super().save_model(request, obj, form, change)
     

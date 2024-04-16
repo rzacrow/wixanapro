@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect, reverse, HttpResponse
+from django.shortcuts import render, redirect, reverse, HttpResponse, HttpResponseRedirect
 from django.views.generic import View
 from django.contrib import messages
 from .models import Attendance, AttendanceDetail, Cycle, RunType, Realm, Role, SpecificTime, Guild, CutDistributaion, CurrentRealm
@@ -56,6 +56,7 @@ class ViewAttendance(View):
                         'realms_count' : realms_count,
                     }
 
+
                     return render(request, 'accounts/attendance.html', context)
                 except:
                     messages.add_message(request, messages.ERROR, "Something went wrong!")
@@ -68,7 +69,7 @@ class ViewAttendance(View):
         
 
     def post(self, request, pk):
-        #try:   
+        try:   
           if request.user.is_authenticated:
             attendance = Attendance.objects.get(id=pk)
             guild = Guild.objects.get(attendance=attendance)
@@ -126,15 +127,17 @@ class ViewAttendance(View):
                 booster_error = 0
 
                 for index in indexes:
-                    #try:
+                    try:
                         username_id = request.POST['booster_username_' + index]
                         alt_id = request.POST['booster_alt_' + index]
                         alt = None
                         player = None
 
                             
-                        if alt_id != "0":
+                        try:
                             alt = Alt.objects.get(id=alt_id)
+                        except:
+                            alt = None
 
                         if username_id != "0":
                             player = User.objects.get(id=username_id)
@@ -181,9 +184,16 @@ class ViewAttendance(View):
                                 booster.cut = cut
                                 booster.save()
                         else:
-                            booster_error += 1
-                    #except:
-                    #    booster_error += 1
+                            try:
+                                ghost, alt, realm = alt_id.split('-')
+                                realm = Realm.objects.get_or_create(name=realm)
+
+                                alt = Alt.objects.get_or_create(name=alt, realm=realm[0], status="Verified")
+                                AttendanceDetail.objects.create(attendane=attendance, role=role, player=None, alt=alt[0], missing_boss=missing_boss, multiplier=multiplier, cut=cut)
+                            except:
+                                booster_error += 1
+                    except:
+                        booster_error += 1
 
 
 
@@ -196,15 +206,17 @@ class ViewAttendance(View):
                 exist_player = list()
 
                 for index in indexes:
-                    print(index)
                     username_id = request.POST['booster_username_' + index]
                     alt_id = request.POST['booster_alt_' + index]
                     alt = None
                     player = None
                     
                     
-                    if alt_id != "0":
+                         
+                    try:
                         alt = Alt.objects.get(id=alt_id)
+                    except:
+                        alt = None
 
                     if username_id != "0":
                         player = User.objects.get(id=username_id)
@@ -216,8 +228,17 @@ class ViewAttendance(View):
                             exist_player.append(item)
                         except:
                             pass
+                    else:
+                        try:
+                            ghost, alt, realm = alt_id.split('-')
+                            realm = Realm.objects.get_or_create(name=realm)
+                            alt = Alt.objects.get_or_create(name=alt, realm=realm[0])
+                            item = AttendanceDetail.objects.get(attendane=attendance, player=None, alt=alt[0])
+                            exist_player.append(item)
 
-                    print(exist_player)
+                        except:
+                            pass
+
 
                 for booster in check_for_deleted:
                     flag = False
@@ -284,9 +305,9 @@ class ViewAttendance(View):
           else:
             messages.add_message(request, messages.ERROR, "For bidden!")
             return redirect("dashboard")
-        #except:
-        #    messages.add_message(request, messages.ERROR, "Something went wrong!")
-        #    return redirect("view_attendance" , attendance.id)
+        except:
+            messages.add_message(request, messages.ERROR, "Something went wrong!")
+            return redirect("view_attendance" , attendance.id)
 
 
         
@@ -336,126 +357,138 @@ class CreateAttendance(View):
 
 
     def post(self, request):
-        if request.user.is_authenticated:
-            cycle = Cycle.objects.get(id=request.POST['cycle'])
-            run_type = RunType.objects.get(id=request.POST['run_type'])
-            #status = request.POST['status']
-            realm_type = request.POST['realm_method']
-            date_time = request.POST['date_time']
-            total_pot = request.POST['total_pot']
-            boss_kill = request.POST['boss_kill']
-            community = request.POST['community']
-            total_guild = request.POST['total_guild']
-            guild_refunds = request.POST['guild_refunds']
-            guild_in_house_customer_pot = request.POST['guild_in_house_customer_pot']
-            guild_gold_collector = request.POST['guild_gold_collector']
-            guild_booster = request.POST['guild_booster']
-            guild_bank = request.POST['guild_bank']
-            character_names = request.POST['character_names']
-            run_note = request.POST['run_note']
+        try:
+            if request.user.is_authenticated:
+                cycle = Cycle.objects.get(id=request.POST['cycle'])
+                run_type = RunType.objects.get(id=request.POST['run_type'])
+                #status = request.POST['status']
+                realm_type = request.POST['realm_method']
+                date_time = request.POST['date_time']
+                total_pot = request.POST['total_pot']
+                boss_kill = request.POST['boss_kill']
+                community = request.POST['community']
+                total_guild = request.POST['total_guild']
+                guild_refunds = request.POST['guild_refunds']
+                guild_in_house_customer_pot = request.POST['guild_in_house_customer_pot']
+                guild_gold_collector = request.POST['guild_gold_collector']
+                guild_booster = request.POST['guild_booster']
+                guild_bank = request.POST['guild_bank']
+                character_names = request.POST['character_names']
+                run_note = request.POST['run_note']
 
 
-            indexes = list()
+                indexes = list()
 
-            if cycle and run_type and date_time and total_pot and boss_kill:
+                if cycle and run_type and date_time and total_pot and boss_kill:
 
-                #get index of booster
-                for key in request.POST.keys():
-                    if (key.split('_')[0] == 'booster'):
-                        if key.split('_')[2] not in indexes:
-                            indexes.append(key.split('_')[2])
+                    #get index of booster
+                    for key in request.POST.keys():
+                        if (key.split('_')[0] == 'booster'):
+                            if key.split('_')[2] not in indexes:
+                                indexes.append(key.split('_')[2])
 
-                if indexes:
-                    if ((not guild_in_house_customer_pot) or (not guild_in_house_customer_pot.isdigit())):
-                        guild_in_house_customer_pot = 0
+                    if indexes:
+                        if ((not guild_in_house_customer_pot) or (not guild_in_house_customer_pot.isdigit())):
+                            guild_in_house_customer_pot = 0
 
-                    
-                    if ((not guild_refunds) or (not guild_refunds.isdigit())):
-                        guild_refunds = 0
+                        
+                        if ((not guild_refunds) or (not guild_refunds.isdigit())):
+                            guild_refunds = 0
 
-                    #create attendance
-                    attendance = Attendance.objects.create(cycle=cycle, run_type=run_type, status='A', date_time=date_time, total_pot=total_pot, boss_kill=boss_kill, run_notes=run_note, characters_name=character_names)
-                    attendance.save()
+                        #create attendance
+                        attendance = Attendance.objects.create(cycle=cycle, run_type=run_type, status='A', date_time=date_time, total_pot=total_pot, boss_kill=boss_kill, run_notes=run_note, characters_name=character_names)
+                        attendance.save()
 
-                    #create guild
-                    guild = Guild.objects.create(attendance=attendance, booster=guild_booster, gold_collector=guild_gold_collector, guild_bank=guild_bank, total=total_guild, in_house_customer_pot=guild_in_house_customer_pot, refunds=guild_refunds)
-                    guild.save()
-                    
-                    #create cut distributaion
-                    CutDistributaion.objects.create(attendance=attendance, total_guild=guild, community=community)
-
-
-
-                    #create boosters(Attendance Detail)
-                    booster_error = 0
-                    for index in indexes:
-                        try:
-                            username_id = request.POST['booster_username_' + index]
-                            alt_id = request.POST['booster_alt_' + index]
-                            alt = None
-                            player = None
-
-                             
-                            if alt_id != "0":
-                                alt = Alt.objects.get(id=alt_id)
-
-                            if username_id != "0":
-                                player = User.objects.get(id=username_id)
-
-                            role = Role.objects.get(id=request.POST['booster_role_' + index])
-                            missing_boss = request.POST['missing_boss_' + index]
-                            multiplier = request.POST['multiplier_' + index]
-                            cut = request.POST['booster_cut_' + index]
-                            
-                            if (alt != None) or (player != None):
-                                if player == None:
-                                    player = alt.player
-                                AttendanceDetail.objects.create(attendane=attendance, role=role, player=player, alt=alt, missing_boss=missing_boss, multiplier=multiplier, cut=cut)
-                            else:
-                                booster_error += 1
-                        except:
-                            booster_error += 1
-
-                    if booster_error > 0:
-                        messages.add_message(request, messages.WARNING, f"{booster_error} booster, were not added")
+                        #create guild
+                        guild = Guild.objects.create(attendance=attendance, booster=guild_booster, gold_collector=guild_gold_collector, guild_bank=guild_bank, total=total_guild, in_house_customer_pot=guild_in_house_customer_pot, refunds=guild_refunds)
+                        guild.save()
+                        
+                        #create cut distributaion
+                        CutDistributaion.objects.create(attendance=attendance, total_guild=guild, community=community)
 
 
-                    
-                    #if the realm type is multirealm
-                    if (realm_type == "2") or (realm_type == "1"):
-                        realm_indexes = list()
-                        realm_error = 0
-                        for key in request.POST.keys():
-                            if ((key.split('_')[0] == 'realm') and (key.split('_')[1] != 'method') and (key.split('_')[1] != 'amount')):
-                                if (key.split('_')[1]) not in realm_indexes:
-                                    realm_indexes.append(key.split('_')[1])
 
-                        if realm_indexes:
-                            for index in realm_indexes:
+                        #create boosters(Attendance Detail)
+                        booster_error = 0
+                        for index in indexes:
+                            try:
+                                username_id = request.POST['booster_username_' + index]
+                                alt_id = request.POST['booster_alt_' + index]
+                                alt = None
+                                player = None
+
                                 try:
-                                    realm_id = request.POST['realm_' + index]
-                                    amount = request.POST['realm_amount_' + index]  
-                                    if (int(amount) > 0) and (realm_id != "0"):
-                                        realm = Realm.objects.get(id=realm_id)
-                                        CurrentRealm.objects.create(attendance=attendance, realm=realm, amount=amount)
-                                    else:
-                                        realm_error += 1
+                                    alt = Alt.objects.get(id=alt_id)
                                 except:
-                                    realm_error += 1
+                                    alt = None
+
+                                if username_id != "0":
+                                    player = User.objects.get(id=username_id)
+
+                                role = Role.objects.get(id=request.POST['booster_role_' + index])
+                                missing_boss = request.POST['missing_boss_' + index]
+                                multiplier = request.POST['multiplier_' + index]
+                                cut = request.POST['booster_cut_' + index]
+                                
+                                if (alt != None):
+                                    if player != None:
+                                        AttendanceDetail.objects.create(attendane=attendance, role=role, player=player, alt=alt, missing_boss=missing_boss, multiplier=multiplier, cut=cut)
+                                    else:
+                                        AttendanceDetail.objects.create(attendane=attendance, role=role, player=None, alt=alt, missing_boss=missing_boss, multiplier=multiplier, cut=cut)
+                                else:
+                                    try:
+                                        ghost, alt, realm = alt_id.split('-')
+                                        realm = Realm.objects.get_or_create(name=realm)
+
+                                        alt = Alt.objects.get_or_create(name=alt, realm=realm[0], status="Verified")
+                                        AttendanceDetail.objects.create(attendane=attendance, role=role, player=None, alt=alt[0], missing_boss=missing_boss, multiplier=multiplier, cut=cut)
+                                    except:
+                                        booster_error += 1
+                            except:
+                                booster_error += 1
+
+                        if booster_error > 0:
+                            messages.add_message(request, messages.WARNING, f"{booster_error} booster, were not added")
+
+
+                        
+                        #if the realm type is multirealm
+                        if (realm_type == "2") or (realm_type == "1"):
+                            realm_indexes = list()
+                            realm_error = 0
+                            for key in request.POST.keys():
+                                if ((key.split('_')[0] == 'realm') and (key.split('_')[1] != 'method') and (key.split('_')[1] != 'amount')):
+                                    if (key.split('_')[1]) not in realm_indexes:
+                                        realm_indexes.append(key.split('_')[1])
+
+                            if realm_indexes:
+                                for index in realm_indexes:
+                                    try:
+                                        realm_id = request.POST['realm_' + index]
+                                        amount = request.POST['realm_amount_' + index]  
+                                        if (int(amount) > 0) and (realm_id != "0"):
+                                            realm = Realm.objects.get(id=realm_id)
+                                            CurrentRealm.objects.create(attendance=attendance, realm=realm, amount=amount)
+                                        else:
+                                            realm_error += 1
+                                    except:
+                                        realm_error += 1
+                                
+                                if realm_error > 0:
+                                    messages.add_message(request, messages.WARNING, f"{realm_error} realms, were not added")
+
+                        messages.add_message(request, messages.SUCCESS, "Attendance was created successfully")
+                        return redirect(reverse('dashboard') + '?tab=new-attendance')
+
+                        
+
                             
-                            if realm_error > 0:
-                                messages.add_message(request, messages.WARNING, f"{realm_error} realms, were not added")
-
-                    messages.add_message(request, messages.SUCCESS, "Attendance was created successfully")
-                    return redirect(reverse('dashboard') + '?tab=new-attendance')
-
-                    
-
-                         
-            
-            messages.add_message(request, messages.ERROR, 'All fields except run_note and character_names are mandatory')
-            return redirect('create_attendance')
-
+                
+                messages.add_message(request, messages.WARNING, 'All fields except run_note and character_names are mandatory')
+                return redirect('create_attendance')
+        except:
+            messages.add_message(request, messages.ERROR, 'Something went wrong!')
+            return redirect('dashboard')
         
 
 

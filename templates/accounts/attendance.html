@@ -76,13 +76,13 @@
                                         </div>
 
                                         <!-- Status -->
-                                        <div class="col-md-6 col-lg-4 col-xl-3">
+                                        <!--<div class="col-md-6 col-lg-4 col-xl-3">
                                             <label for="status-select" class="form-label">Status</label>
                                             <select id="status-select" name="status" class="select-custom-style" disabled>
                                                 <option value="A" selected>Active</option>
                                                 <option value="C">Close</option>
                                             </select>
-                                        </div>
+                                        </div>-->
 
                                         <!-- Realm Method -->
                                         <div class="col-md-6 col-lg-4 col-xl-3">
@@ -401,7 +401,7 @@
                                                     </div>
                                                     <div class="justify-end">
                                                         <button type="button" onclick="register_ghost()" class="btn btn-porpule color-white-important display-none" id="booster_register">
-                                                            Register all
+                                                            Add all
                                                         </button>
                                                     </div>
                                                 </div>
@@ -879,9 +879,25 @@
         create_booster();
 
         
+        function set_default_role(){
+            booster_1 = document.getElementById('booster_role_1');
+            booster_2 = document.getElementById('booster_role_2');
+    
+            if (booster_2 != null){
+                booster_2.value = 2;
+            }
+
+            
+            if (booster_1 != null){
+                booster_1.value = 1;
+            }
+        }
+
+
         function add_new_booster(){
             create_booster();
             calculate_shares();
+            set_default_role();
         }
 
 
@@ -902,27 +918,34 @@
         //When changing the username select box, the characters should be adjusted accordingly
         function change_username_set_alt(index){
             let username_id = document.getElementById('booster_username_' + index).value;
-            
+            if (username_id != "0") {
+                alt = document.getElementById("booster_alt_" + index);
+                alt.innerHTML = '<option value="0">Alt</option>';
+                {% for alt_item in alts %}
+                    {% if alt_item.player %}
+                    if ("{{alt_item.player.id}}" == username_id){
+                        alt.innerHTML +='<option value="{{alt_item.id}}">{{alt_item}}</option>';
+                    }
+                    {% endif %}
+                {% endfor %}
+            }
 
-            alt = document.getElementById("booster_alt_" + index);
-            alt.innerHTML = '<option value="0">Alt</option>';
-            {% for alt_item in alts %}
-                if ({{alt_item.player.id}} == username_id){
-                    alt.innerHTML +='<option value="{{alt_item.id}}">{{alt_item}}</option>';
-                }
-            {% endfor %}
         }
+
+        
 
 
         //Add booster by character names input
         function add_new_booster_by_value(alt_id){
             let alt_verified = false;
-            let username_id;
+            let username_id = "0";
             {% if alts %}
                 {% for alt in alts %}
                     if({{alt.id}} == alt_id){
                         alt_verified = true;
-                        username_id = {{alt.player.id}};
+                        {% if alt.player %}
+                        username_id = "{{alt.player.id}}";
+                        {% endif %}
                     }
                 {% endfor %}
             {% endif %}
@@ -947,9 +970,11 @@
 
                     select_alt = document.getElementById('booster_alt_' + current_id);
                     select_username = document.getElementById('booster_username_' + current_id);
-                    select_username.value = username_id;
 
-                    change_username_set_alt(current_id);
+                    if (username_id != "0"){
+                        select_username.value = username_id;
+                        change_username_set_alt(current_id);
+                    }
                     select_alt.value = alt_id;
                 }
             }
@@ -973,7 +998,6 @@
 
                 //if there isn't a booster with this alt in boosters list then create a booster 
                 if (is_exist == false){
-                    console.log(parent_section);
                     add_new_booster();
                     let current_id = booster_object_counter;
 
@@ -990,12 +1014,30 @@
 
         let wrong = [];
 
+
+        function add_ghost_booster(alt, realm){
+            add_new_booster();
+
+            alt_opt = document.createElement('option');
+            alt_opt.value = 'ghost' + '-' + alt + '-' + realm;
+            alt_opt.innerHTML = alt + '-' + realm;
+
+            let current_id = booster_object_counter;
+            select_alt = document.getElementById('booster_alt_' + current_id);
+            console.log(current_id);
+            console.log(alt_opt);
+            select_alt.appendChild(alt_opt);
+            select_alt.value = alt_opt.value;
+
+        }
+
         function register_ghost(){
+            console.log(wrong);
             for (obj of wrong){
                 let alt = obj.split(" ")[0];
                 let realm = obj.split(" ")[1];
 
-                add_new_booster_by_value();
+                add_ghost_booster(alt, realm);
             }
         }
 
@@ -1092,13 +1134,17 @@
             missing_boss_input = document.getElementById('missing_boss_' + current_id);
             select_role = document.getElementById('booster_role_' + current_id);
 
+            if (player != "0"){
             change_username_set_alt(current_id);
+            }
+
             if (alt != null){
                 select_alt.value = alt;
             }
 
             select_role.value = role;
             missing_boss_input.value = missing_boss;
+            
         }
 
 
@@ -1110,11 +1156,9 @@
                 item.value = value;
             }
 
-            console.log("{{attendance.total_pot}}");
             make_change_input('btn_submit_attendance', "+ Save");           
             make_change_input('cycle-select', "{{attendance.cycle.id}}");     
             make_change_input('run_type_select', "{{attendance.run_type.id}}");           
-            make_change_input('status-select', "{{attendance.status}}");
             make_change_input('id_date_time', "{{attendance.date_time|date:"Y-m-d H:i"}}");
             make_change_input('total_pot', "{{attendance.total_pot}}");
             make_change_input('guild_refunds', "{{guild.refunds}}");
@@ -1132,7 +1176,11 @@
                     alt = "{{booster.alt.id}}";
                     {% endif %}
 
+                    {% if booster.player %}
                     add_booster_in_view(player="{{booster.player.id}}", alt=alt, role="{{booster.role.id}}", missing_boss="{{booster.missing_boss}}");
+                    {% else %}
+                    add_booster_in_view(player="0", alt=alt, role="{{booster.role.id}}", missing_boss="{{booster.missing_boss}}");
+                    {% endif %}
                 {% endfor %}
             {% endif %}
             
@@ -1186,6 +1234,5 @@
             time_flag = true;
             btn_time_popup();
         }
-
     </script>
 {% endblock %}

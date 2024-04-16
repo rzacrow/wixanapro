@@ -99,7 +99,7 @@ class Alt(models.Model):
         ('Rejected', 'Rejected')
     )
 
-    player = models.ForeignKey(User, on_delete=models.CASCADE, blank=False, null=False)
+    player = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     name = models.CharField(max_length=128, blank=False, null=False)
     status = models.CharField(max_length=8, choices=ALT_STATUS_CHOICES, default='Awaiting')
     realm = models.ForeignKey(Realm, on_delete=models.PROTECT)
