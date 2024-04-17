@@ -891,6 +891,7 @@
             if (booster_1 != null){
                 booster_1.value = 1;
             }
+            calculate_shares();
         }
 
 
@@ -1191,7 +1192,6 @@
                     make_change_input("realm-method-select", "2");
                 {% endif %}
 
-                roletypechange();
 
                 parent_realm_section.innerHTML = "";
                 {% for realm in current_realm %}

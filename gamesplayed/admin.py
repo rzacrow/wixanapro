@@ -51,7 +51,7 @@ class TransactionAdmin(ModelAdmin):
                 return f"{obj.amount // 1000} K"
         return obj.amount
     
-    list_display = ['user_requester', 'status', 'created_show', 'currency', 'amount_if_cut']
+    list_display = ['user_requester', 'status', 'created_show', 'currency', 'amount_if_cut', 'caption']
     readonly_fields = ['created_show']
     fieldsets = [(
             None,
@@ -208,9 +208,16 @@ class CycleAdmin(ModelAdmin):
 
     list_filter_submit = True  # Submit button at the bottom of the filter
 
+    def get_formsets_with_inlines(self, request, obj=None):
+        for inline in self.get_inline_instances(request, obj):
+            # hide MyInline in the add view
+            if not isinstance(inline, AttendanceInline) or obj is not None:
+                yield inline.get_formset(request, obj), inline
+
     def closed_status(self, request, objects):
         for obj in objects:
                 if obj.status == 'C':
+                    messages.add_message(request, messages.WARNING, f'cycle {obj} has already been closed' )
                     continue
                 attendances = Attendance.objects.filter(cycle=obj)
                 if attendances:
@@ -221,14 +228,22 @@ class CycleAdmin(ModelAdmin):
                             if at.paid_status == False:
                                 if boosters:
                                     for b in boosters:
-                                        wallet = Wallet.objects.get_or_create(player=b.player)
-                                        wallet[0].amount += b.cut
-                                        wallet[0].save()
+                                        try:
+                                            wallet = Wallet.objects.get_or_create(player=b.player)
+                                            wallet[0].amount += b.cut
+                                            wallet[0].save()
+                                        except:
+                                            pass
                                     at.paid_status = True                                    
                             at.save()
                         if boosters:
                             for booster in boosters:
-                                string = f"1"
+                                string = ""
+                                if booster.payment_character:
+                                    string = f"{booster.payment_character}:{booster.cut}:Wixana.ir"
+                                elif booster.alt:
+                                    string = f"{booster.alt}:{booster.cut}:Wixana.ir"
+
                                 Payment.objects.create(cycle=obj, detail=booster, string=string)
 
     @admin.action(description="Change to 'Close'")
@@ -257,13 +272,6 @@ class PaymentAdmin(ModelAdmin):
     def user_display(self, obj):
         return obj.detail.player
     
-    @admin.display(description="Payment character")
-    def payment_character(self, obj):
-        try:
-            return obj.payment_character
-        except:
-            return "there aren't any payment character"
-    
     @admin.display(description="Cut")
     def booster_cut(self, obj):
         if obj.detail.cut >= 1000:
@@ -271,39 +279,59 @@ class PaymentAdmin(ModelAdmin):
             return f"{amount_per_thousand} K"
         return obj.detail.cut
     
-    list_display = ['user_display', 'payment_character', 'booster_cut', 'string','is_paid']
+    list_display = ['user_display', 'booster_cut', 'string','is_paid']
     ordering = ['cycle__end_date']
 
     def is_paid_change(self, objects, request):
+        wallet_fail = False
+        wallet_fail_list = list()
+
+        insufficient_balance = False
+        insufficient_balance_list = list()
+
         for obj in objects:
             try:
                 wallet = Wallet.objects.get(player=obj.detail.player)
             except:
-                messages.add_message(request, messages.ERROR, message=f"There was a problem in deducting the payment amount from user {obj.detail.player} wallet")
-                obj.is_paid = False
+                wallet_fail = True
+                wallet_fail_list.append(obj.detail.player.username)
                 obj.save()
             else:
-                wallet.amount -= int(obj.detail.cut)
-                wallet.save()
-                Transaction.objects.create(requester=obj.detail.player, status='PAID', paid_date=timezone.now().today(), amount=obj.detail.cut, currency='CUT', alt=obj.detail.payment_character)
+                if wallet.amount < int(obj.detail.cut):
+                    insufficient_balance = True
+                    insufficient_balance_list.append(obj.detail.player.username)
+                    obj.is_paid = False
+                    obj.save()
+                else:
+                    wallet.amount -= int(obj.detail.cut)
+                    wallet.save()
+
+                    Transaction.objects.create(requester=obj.detail.player, status='PAID', paid_date=timezone.now().today(), amount=obj.detail.cut, currency='CUT', alt=obj.detail.payment_character, caption="---Cycle---")
+        
+        if wallet_fail:
+            messages.add_message(request, messages.WARNING, f"The wallets of {wallet_fail} users were not found, But their payment status was set as 'paid'")
+
+        if insufficient_balance:
+            messages.add_message(request, messages.WARNING, f"The account balance of the following users is less than the amount paid, {insufficient_balance_list}, and their payment status was set as 'Unpaid'")
 
 
     @admin.action(description="Paid status to 'True'")
     def change_to_ispaid(self, request, queryset):
         list_ids = queryset.values_list('id', flat=True)
         objects = Payment.objects.filter(id__in=list_ids)
-        self.is_paid_change(objects=objects, request=request)
         queryset.update(is_paid=True)
+        self.is_paid_change(objects=objects, request=request)
 
     actions = [
         'change_to_ispaid'
     ]
 
     def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+
         if 'is_paid' in form.changed_data:
             if obj.is_paid == True:
                 self.is_paid_change(objects=[obj], request=request)
 
-        super().save_model(request, obj, form, change)
                 
 

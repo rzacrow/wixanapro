@@ -6,6 +6,7 @@ from .forms import DateTimeBootstrap
 from django.utils import timezone
 from accounts.models import User, Alt, Team, TeamDetail
 import datetime
+from django.db.models import Sum
 import json
 
 class ViewAttendance(View):
@@ -210,9 +211,7 @@ class ViewAttendance(View):
                     alt_id = request.POST['booster_alt_' + index]
                     alt = None
                     player = None
-                    
-                    
-                         
+                      
                     try:
                         alt = Alt.objects.get(id=alt_id)
                     except:
@@ -255,6 +254,13 @@ class ViewAttendance(View):
 
 
                 if booster_error > 0:
+                    ad = AttendanceDetail.objects.filter(attendane=attendance)
+                    tg = int(guild.booster)
+                    sum_multiplier = int(ad.aggregate(total=Sum('multiplier'))['total'])
+                    cut_per_booster = int(tg / sum_multiplier)
+                    for booster in ad:
+                        booster.cut = int(cut_per_booster * float(booster.multiplier))
+                        booster.save()
                     messages.add_message(request, messages.WARNING, f"{booster_error} booster, were not added")
 
 
@@ -357,7 +363,7 @@ class CreateAttendance(View):
 
 
     def post(self, request):
-        try:
+        #try:
             if request.user.is_authenticated:
                 cycle = Cycle.objects.get(id=request.POST['cycle'])
                 run_type = RunType.objects.get(id=request.POST['run_type'])
@@ -381,11 +387,12 @@ class CreateAttendance(View):
 
                 if cycle and run_type and date_time and total_pot and boss_kill:
 
-                    #get index of booster
+                    #get number of boosters
                     for key in request.POST.keys():
                         if (key.split('_')[0] == 'booster'):
                             if key.split('_')[2] not in indexes:
                                 indexes.append(key.split('_')[2])
+
 
                     if indexes:
                         if ((not guild_in_house_customer_pot) or (not guild_in_house_customer_pot.isdigit())):
@@ -409,11 +416,15 @@ class CreateAttendance(View):
 
 
                         #create boosters(Attendance Detail)
+
+
                         booster_error = 0
                         for index in indexes:
                             try:
                                 username_id = request.POST['booster_username_' + index]
-                                alt_id = request.POST['booster_alt_' + index]
+                                alt_index = f'booster_alt_{index}'
+
+                                alt_id = request.POST[alt_index]
                                 alt = None
                                 player = None
 
@@ -422,32 +433,50 @@ class CreateAttendance(View):
                                 except:
                                     alt = None
 
+                                #if there is a username
                                 if username_id != "0":
                                     player = User.objects.get(id=username_id)
 
+                                
                                 role = Role.objects.get(id=request.POST['booster_role_' + index])
+
                                 missing_boss = request.POST['missing_boss_' + index]
                                 multiplier = request.POST['multiplier_' + index]
                                 cut = request.POST['booster_cut_' + index]
                                 
-                                if (alt != None):
-                                    if player != None:
+                                if (player != None):
+                                    if alt != None:
                                         AttendanceDetail.objects.create(attendane=attendance, role=role, player=player, alt=alt, missing_boss=missing_boss, multiplier=multiplier, cut=cut)
                                     else:
-                                        AttendanceDetail.objects.create(attendane=attendance, role=role, player=None, alt=alt, missing_boss=missing_boss, multiplier=multiplier, cut=cut)
+                                        AttendanceDetail.objects.create(attendane=attendance, role=role, player=player, alt=None, missing_boss=missing_boss, multiplier=multiplier, cut=cut)
                                 else:
                                     try:
                                         ghost, alt, realm = alt_id.split('-')
+                                        
                                         realm = Realm.objects.get_or_create(name=realm)
+                                        realm[0].save()
 
-                                        alt = Alt.objects.get_or_create(name=alt, realm=realm[0], status="Verified")
+                                        alt = Alt.objects.get_or_create(name=alt, realm=realm[0])
+                                        alt[0].status = 'Verified'
+                                        alt[0].save()
+
+
                                         AttendanceDetail.objects.create(attendane=attendance, role=role, player=None, alt=alt[0], missing_boss=missing_boss, multiplier=multiplier, cut=cut)
+
                                     except:
                                         booster_error += 1
                             except:
                                 booster_error += 1
 
                         if booster_error > 0:
+                            ad = AttendanceDetail.objects.filter(attendane=attendance)
+                            tg = int(guild.booster)
+                            sum_multiplier = int(ad.aggregate(total=Sum('multiplier'))['total'])
+                            cut_per_booster = int(tg / sum_multiplier)
+                            for booster in ad:
+                                booster.cut = int(cut_per_booster * float(booster.multiplier))
+                                booster.save()
+                                
                             messages.add_message(request, messages.WARNING, f"{booster_error} booster, were not added")
 
 
@@ -486,7 +515,7 @@ class CreateAttendance(View):
                 
                 messages.add_message(request, messages.WARNING, 'All fields except run_note and character_names are mandatory')
                 return redirect('create_attendance')
-        except:
+        #except:
             messages.add_message(request, messages.ERROR, 'Something went wrong!')
             return redirect('dashboard')
         

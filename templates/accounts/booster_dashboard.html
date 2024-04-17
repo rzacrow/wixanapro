@@ -678,6 +678,7 @@
                                                                 <td class="bg-transparent color-white-important">
                                                                     <form method="get" class="row">
                                                                         <div class="col col-9">
+                                                                            <small class="pay_char_help_text color-red" id="pay_char_help_text_{{match.id}}"></small>
                                                                             <select name="payment_character" id="payment_character_{{match.id}}" class="payment_character">
                                                                                 <option value="0">Payment character</option>
                                                                                 {% for alt in alts%}
@@ -717,6 +718,8 @@
                                                     if ( "{{match.id}}" == id){
                                                         {% if match.payment_character %}
                                                             pay_select.value = "{{match.payment_character.id}}";
+                                                        {% else %}
+                                                            document.getElementById("pay_char_help_text_" + id).innerText = "* You have not selected a character to pay";
                                                         {% endif %}
                                                     }
                                                 {% endfor %}
