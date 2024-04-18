@@ -784,7 +784,7 @@
                                                         <hr>
 
                                                         <div class="content">
-                                                            <form method="post" action="{% url 'asking_money' %}" onsubmit="return confirm('Do you really want to send the form?');">
+                                                            <form method="post" action="{% url 'asking_money' %}">
                                                                 {% csrf_token %}
 
                                                                 <div class="mb-3">
@@ -808,7 +808,7 @@
                                                                 </div>
 
                                                                 <label class="form-label">Amount</label>
-                                                                <input type="number" placeholder="units per 'K'" name="asking_money_amount">
+                                                                <input type="number" placeholder="Unit in each method is *Gold* like '10' " name="asking_money_amount" id="asking_money_amount">
 
                                                                 <div class="mb-3 from-top-15">
                                                                     <label for="payment-request-type" class="form-label">Payment method</label>
@@ -818,7 +818,9 @@
                                                                     </select>
                                                                 </div>
                                                                 <div class="mb-3">
-                                                                    <input type="submit" value="Send" class="btn btn-porpule color-white">
+                                                                    <button type="button" class="btn btn-porpule color-white full-width" id="btn_payment_request" data-bs-toggle="modal" data-bs-target="#paymentRequestModal" onclick="pay_request();">
+                                                                        Submit
+                                                                    </button>
                                                                 </div>
                                                             </form>
                                                         </div>
@@ -1489,6 +1491,154 @@
 
             </div>
             
+
+
+
+
+            <!-- Payment request modal -->
+            <div class="modal fade" id="paymentRequestModal" aria-hidden="true" aria-labelledby="paymentRequestModalLabel" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h1 class="modal-title fs-5" id="paymentRequestModalLabel">WIXANA</h1>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <h6>Your payment request is accompanied by a {% if transaction_wage %}"{{transaction_wage}}"{% else %} 0% {% endif %} fee</h6>
+                            <b id="rp_amountInIr"></b><br><hr>
+
+                            <b id="deducated_amount"></b><br>
+                            <b id="finall_amount"></b>
+
+                            <div class="row">
+                                <div class="col">
+                                    <form method="post" action="{% url 'asking_money' %}" id="final_payment_request_form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="final_select_card" id="final_select_card">
+                                        <input type="hidden" name="final_payment_request_alt" id="final_payment_request_alt">
+
+                                        <input type="hidden" name="final_payment_request_method" id="final_payment_request_method">
+                                        <input type="hidden" name="final_payment_request_amount" id="final_payment_request_amount">
+                                        <input type="hidden" name="percentage" id="percentage">
+
+                                        <button type="submit" class="btn btn-porpule color-white-important from-top-15 full-width" >Accept and continue</button>
+                                    </form
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.2/jquery.min.js" integrity="sha512-tWHlutFnuG0C6nQRlpvrEhE4QpkG1nn2MOUMWmUeRePl4e3Aki0VB6W1v3oLjFtd0hVOtRQ9PHpSfN6u6/QXkQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+                <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+                <script>
+                    let fa = 0, da = 0, a_ir = 0;
+
+                    function pay_request(){
+                        payment_method = document.getElementById('payment-request-type').value;
+                        console.log(payment_method);
+                        var payment_amount = document.getElementById('asking_money_amount').value;
+                        
+                        if (isNaN(payment_amount)){
+                            payment_amount = 0;
+                        }else{
+                            payment_amount = parseInt(payment_amount * 1000);
+                        }
+
+                        deducated_amount = document.getElementById('deducated_amount');
+                        finall_amount = document.getElementById('finall_amount');
+    
+                        let wage = 0;
+                        
+                        
+                        {% if transaction_wage %}
+                        wage = parseInt("{{transaction_wage}}");
+                        {% else %}
+                        wage = 0;
+                        {% endif %}
+
+
+                        if (payment_method == 'CUT'){
+                            if (wage != 0){
+                                da = (payment_amount * wage) / 100 ;
+                                fa = payment_amount - da;
+                                fa = fa / 1000;
+                            }
+                        } else if (payment_method == 'IR'){
+                            if (wage != 0){
+                                da = (payment_amount * wage) / 100 ;
+                                fa = payment_amount - da;
+                                fa = fa / 1000;
+                                {% if cut_per_ir %}
+                                    a_ir = (fa * {{cut_per_ir.amount}});
+                                    document.getElementById('rp_amountInIr').innerText = "Amount in (IR): " + a_ir;
+                                {% else %}
+                                    document.getElementById('rp_amountInIr').innerText = "Amount in Cut(IR amount not define): " + fa;
+
+                                {% endif %}
+                            }
+                        }
+    
+    
+                        if ( (isNaN(da)) || (isNaN(fa)) ){
+                            da = 0;
+                            fa = payment_amount;
+                        }
+
+                        deducated_amount.innerText = "Deducated amount: " + da;
+                        finall_amount.innerText = "Final amount: " + fa + " K";
+    
+                    }
+
+                $('#final_payment_request_form').on('submit', function() {
+
+                    payment_method = document.getElementById('payment-request-type').value;
+
+
+                    var percentage = 0;
+
+                    {% if transaction_wage %}
+                    percentage = parseInt("{{transaction_wage.id}}");
+                    {% endif %}
+
+                    if (payment_method == 'CUT'){
+                        var alt_id = document.getElementById("select-alt").value;
+
+                        if (alt_id == "0"){
+                            alert("You must choose an alt for payment");
+                            return false;
+                        } 
+
+                        document.getElementById("final_payment_request_alt").value = alt_id ;
+                        document.getElementById("final_payment_request_amount").value = fa ;
+                        document.getElementById("final_payment_request_method").value = payment_method;
+                        document.getElementById("percentage").value = percentage;
+                        
+                    } else if (payment_method == 'IR'){
+
+                        var card_id = document.getElementById("select-card").value;
+                        if (card_id == "0"){
+                            alert("You must choose a bank card for payment");
+                            return false;
+                        } 
+
+                        document.getElementById("final_select_card").value = card_id ;
+                        document.getElementById("final_payment_request_amount").value = fa ;
+                        document.getElementById("final_payment_request_method").value = payment_method;
+
+                        
+                        document.getElementById("percentage").value = percentage;
+                    }
+                    return true;
+                });
+                    
+                </script>
+            </div>
+
+
+
+
+
+
 
             <!-- Register Bank Card Modal -->
             <div class="modal fade" id="createBankCardModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabelbankcard" aria-hidden="true">

@@ -15,7 +15,7 @@ from .forms import SignupForm, LoginForm, UpdateProfileForm, CreateTeamForm, Car
 from django.contrib.contenttypes.models import ContentType
 
 #models
-from .models import User, Wallet, Alt, Realm, Team, TeamDetail, TeamRequest, Notifications, Transaction, InviteMember, RemoveAltRequest, Loan, Debt, WixanaBankDetail, PaymentDebtTrackingCode, Ticket, TicketAnswer, CardDetail
+from .models import User, Wallet, Alt, Realm, Team, TeamDetail, TeamRequest, Notifications, Transaction, InviteMember, RemoveAltRequest, Loan, Debt, WixanaBankDetail, PaymentDebtTrackingCode, Ticket, TicketAnswer, CardDetail, TransactionFee, LoanInterest
 from gamesplayed.models import CutInIR, AttendanceDetail, Attendance
 
 from gamesplayed.forms import DateTimeBootstrap
@@ -305,6 +305,8 @@ class Dashboard(View):
                 context['debt_form'] = DebtForm()
                 context['loan_history'] = booster_dashboard.loan_history(pk=user.id)
                 context['debts'] = booster_dashboard.get_debt(pk=user.id)
+                context['transaction_wage'] = TransactionFee.objects.last()
+
 
                 if (user.is_staff) and (user.has_perm('gamesplayed.add_attendance')):
                     has_perm_view_attendance_admin = True
@@ -618,15 +620,25 @@ class AskingMoney(View):
         if request.user.is_authenticated:
             user = request.user
             if user.user_type != 'U' and user.has_perm('accounts.add_transaction'):
-                currency = request.POST['asking_money_type']
-                amount = int(request.POST['asking_money_amount'])
+                currency = request.POST['final_payment_request_method']
+                amount = float(request.POST['final_payment_request_amount'])
                 wallet = Wallet.objects.get(player=user)
-                card_detail = request.POST['card']
+                percentage = request.POST['percentage']
 
+                try:
+                    percentage = TransactionFee.objects.get(id=percentage)
+                except:
+                    percentage = None
+
+                print("amount: " , amount)
+                
                 amount = amount * 1000
+                print("amount2: " , amount)
+
                 if (amount <= wallet.amount) and (wallet.amount >= 1000):
                     if amount >= 1:
                         to_day_request = Transaction.objects.filter(requester=user, created__day=timezone.datetime.today().day).count()
+
                         if to_day_request >= 2:
                             messages.add_message(request, messages.WARNING, "You can payment request twice a day")
                             return redirect(reverse('dashboard') + '?tab=wallet')
@@ -634,9 +646,12 @@ class AskingMoney(View):
                         wallet.amount -= amount
                         wallet.save()
                         amount = amount // 1000
+                        print("amount3: " , amount)
+
                         if currency == 'IR':
                             try:
                                 try:
+                                    card_detail = request.POST['final_select_card']
                                     card_detail = CardDetail.objects.get(id=card_detail)
                                 except:
                                     card_detail = None
@@ -654,20 +669,26 @@ class AskingMoney(View):
                                 return redirect(reverse('dashboard') + "?tab=wallet")
                             else:
                                 amount_in_ir = amount * cut_in_ir
-                                Transaction.objects.create(requester=user, amount=amount_in_ir, currency=currency, caption=f"Cut: {amount} K", card_detail=card_detail)
+                                print("amount4: " , amount_in_ir)
+
+                                Transaction.objects.create(requester=user, amount=amount_in_ir, currency=currency, caption=f"Cut: {amount} K", card_detail=card_detail, wage_percentage=percentage)
                             messages.add_message(request, messages.SUCCESS, "Your payment request has been successfully registered")
                         else:
                             try:
-                                alt_id = request.POST['alt']  
+                                alt_id = request.POST['final_payment_request_alt']  
                                 alt = Alt.objects.get(id=alt_id)
                             except:
                                 wallet.amount += (amount * 1000)
                                 wallet.save()
                                 messages.add_message(request, messages.WARNING, 'Alt is not valid')
                                 return redirect(reverse('dashboard') + '?tab=wallet')
+                            
 
-                            Transaction.objects.create(requester=user, amount=amount, currency=currency, alt=alt)
+
+                            Transaction.objects.create(requester=user, amount=amount, currency=currency, alt=alt, wage_percentage=percentage)
                             messages.add_message(request, messages.SUCCESS, "Your payment request has been successfully registered")
+
+                            
                         admins = User.objects.filter(user_type__in=['A', 'O'])
                         for admin in admins:
                             Notifications.objects.create(send_to=admin, title="Payment reqeust", caption=f"You have a new payment request from {request.user.username}")

@@ -880,18 +880,7 @@
 
         
         function set_default_role(){
-            booster_1 = document.getElementById('booster_role_1');
-            booster_2 = document.getElementById('booster_role_2');
-    
-            if (booster_2 != null){
-                booster_2.value = 2;
-            }
-
-            
-            if (booster_1 != null){
-                booster_1.value = 1;
-            }
-            calculate_shares();
+         
         }
 
 
@@ -1020,8 +1009,8 @@
             add_new_booster();
 
             alt_opt = document.createElement('option');
-            alt_opt.value = 'ghost' + '-' + alt + '-' + realm;
-            alt_opt.innerHTML = alt + '-' + realm;
+            alt_opt.value = "ghost" + "-" + alt + "-" + realm;
+            alt_opt.innerHTML = alt + "-" + realm;
 
             let current_id = booster_object_counter;
             select_alt = document.getElementById('booster_alt_' + current_id);

@@ -289,30 +289,41 @@ class PaymentAdmin(ModelAdmin):
         insufficient_balance = False
         insufficient_balance_list = list()
 
+        string = ""
+
         for obj in objects:
             try:
-                wallet = Wallet.objects.get(player=obj.detail.player)
-            except:
-                wallet_fail = True
-                wallet_fail_list.append(obj.detail.player.username)
-                obj.save()
-            else:
-                if wallet.amount < int(obj.detail.cut):
-                    insufficient_balance = True
-                    insufficient_balance_list.append(obj.detail.player.username)
-                    obj.is_paid = False
-                    obj.save()
-                else:
-                    wallet.amount -= int(obj.detail.cut)
-                    wallet.save()
+                if obj.detail.player:
+                    wallet = Wallet.objects.get(player=obj.detail.player)
+                    if wallet.amount < int(obj.detail.cut):
+                        insufficient_balance = True
+                        insufficient_balance_list.append(obj.detail.player.username)
+                        obj.is_paid = False
+                        obj.save()
+                    else:
+                        wallet.amount -= int(obj.detail.cut)
+                        wallet.save()
+                        string += f"{obj.string},"
 
-                    Transaction.objects.create(requester=obj.detail.player, status='PAID', paid_date=timezone.now().today(), amount=obj.detail.cut, currency='CUT', alt=obj.detail.payment_character, caption="---Cycle---")
+                        Transaction.objects.create(requester=obj.detail.player, status='PAID', paid_date=timezone.now().today(), amount=obj.detail.cut, currency='CUT', alt=obj.detail.payment_character, caption="---Cycle---")
+                else:
+                    wallet_fail = True
+                    wallet_fail_list.append(obj.detail.alt)
+                    print(obj.string)
+                    string += f"{obj.string},"
+                    obj.save()
+            except:
+                pass
+
+                
         
         if wallet_fail:
-            messages.add_message(request, messages.WARNING, f"The wallets of {wallet_fail} users were not found, But their payment status was set as 'paid'")
+            messages.add_message(request, messages.WARNING, f"The wallets of {wallet_fail_list} users were not found, But their payment status was set as 'paid'")
 
         if insufficient_balance:
             messages.add_message(request, messages.WARNING, f"The account balance of the following users is less than the amount paid, {insufficient_balance_list}, and their payment status was set as 'Unpaid'")
+        
+        messages.add_message(request, messages.SUCCESS, string)
 
 
     @admin.action(description="Paid status to 'True'")

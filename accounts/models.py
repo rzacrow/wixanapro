@@ -185,6 +185,21 @@ class Notifications(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=1, choices=NOTIF_CHOICES, default='U')
 
+class TransactionFee(models.Model):
+    wage = models.FloatField(default=1)
+
+    def __str__(self) -> str:
+        return f"{str(self.wage)} %"
+
+class LoanInterest(models.Model):
+    interest = models.FloatField(default=1)
+    payment_penalty = models.FloatField(default=1)
+    delinquency = models.IntegerField(default=0)
+
+    def __str__(self) -> str:
+        return f"{str(self.interest)} %"
+
+
 
 class Transaction(models.Model):
     TRANSACTION_CHOICES = (
@@ -206,6 +221,7 @@ class Transaction(models.Model):
     currency = models.CharField(max_length=3, choices=CURRENCY_CHOICES, default='CUT')
     alt = models.ForeignKey(Alt, on_delete=models.CASCADE, blank=True, null=True)
     card_detail = models.ForeignKey(CardDetail, on_delete=models.CASCADE, blank=True, null=True)
+    wage_percentage = models.ForeignKey(TransactionFee, on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self) -> str:
         return str(self.id)
@@ -231,6 +247,9 @@ class Loan(models.Model):
     note = models.CharField(max_length=255, blank=True, null=True)
     loan_status = models.CharField(max_length=7, default='Pending', choices=LOAN_STAUTS)
     method = models.CharField(max_length=3, choices=LOAN_METHOD_CHOICES, blank=True, null=True)
+    loan_interest = models.OneToOneField(LoanInterest, on_delete=models.PROTECT, blank=True, null=True)
+
+
     def __str__(self) -> str:
         name = self.user.username
         if self.user.nick_name:

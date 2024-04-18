@@ -7,13 +7,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('gamesplayed', '0001_initial'),
+        ('accounts', '0001_initial'),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='cycle',
-            name='start_date',
+            model_name='paymentdebttrackingcode',
+            name='created',
             field=models.DateTimeField(default=datetime.datetime(2024, 4, 18, 14, 20, 33, 868333)),
         ),
     ]

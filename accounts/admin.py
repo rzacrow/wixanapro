@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.models import User, Group, Permission
-from .models import User as um, Team, TeamDetail, Alt, Realm, Wallet, Notifications, Loan, Debt, WixanaBankDetail, PaymentDebtTrackingCode, Ticket, TicketAnswer, CardDetail, InviteMember
+from .models import User as um, Team, TeamDetail, Alt, Realm, Wallet, Notifications, Loan, Debt, WixanaBankDetail, PaymentDebtTrackingCode, Ticket, TicketAnswer, CardDetail, InviteMember, TransactionFee, LoanInterest
 from django.db import models
 from unfold.admin import ModelAdmin,TabularInline, StackedInline
 from unfold.contrib.forms.widgets import WysiwygWidget
@@ -482,3 +482,7 @@ class TicketAdmin(ModelAdmin):
             pass
         super().save_model(request, obj, form, change)
 
+
+@admin.register(TransactionFee)
+class TransactionFeeAdmin(ModelAdmin):
+    list_display = ['wage']
