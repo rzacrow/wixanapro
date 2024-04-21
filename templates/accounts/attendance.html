@@ -903,7 +903,7 @@
             add_new_booster();
         }
 
-        //TODO:When changing the alt select box, the username should be adjusted accordingly
+        //When changing the alt select box, the username should be adjusted accordingly
         function select_booster_alt(index){
             alt = document.getElementById('booster_alt_' + index).value;
             
@@ -912,7 +912,11 @@
 
             {% for alt_item in alts %}
                 if ({{alt_item.id}} == alt){
+                    {% if alt_item.player %}
                     usernames.value = "{{alt_item.player.id}}";
+                    {% else %}
+                    usernames.value = "0";
+                    {% endif %}
                 }
             {% endfor %}
         }

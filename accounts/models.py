@@ -191,13 +191,6 @@ class TransactionFee(models.Model):
     def __str__(self) -> str:
         return f"{str(self.wage)} %"
 
-class LoanInterest(models.Model):
-    interest = models.FloatField(default=1)
-    payment_penalty = models.FloatField(default=1)
-    delinquency = models.IntegerField(default=0)
-
-    def __str__(self) -> str:
-        return f"{str(self.interest)} %"
 
 
 
@@ -227,6 +220,9 @@ class Transaction(models.Model):
         return str(self.id)
     
 
+class LoanInterestPercentage(models.Model):
+    percentage = models.FloatField(default=1)
+
 class Loan(models.Model):
     LOAN_STAUTS = (
         ('Pending','Pending'),
@@ -247,14 +243,16 @@ class Loan(models.Model):
     note = models.CharField(max_length=255, blank=True, null=True)
     loan_status = models.CharField(max_length=7, default='Pending', choices=LOAN_STAUTS)
     method = models.CharField(max_length=3, choices=LOAN_METHOD_CHOICES, blank=True, null=True)
-    loan_interest = models.OneToOneField(LoanInterest, on_delete=models.PROTECT, blank=True, null=True)
-
+    loan_interest = models.ForeignKey(LoanInterestPercentage, on_delete=models.PROTECT, blank=True, null=True)
+    repayment_period = models.IntegerField(blank=True, null=True)
 
     def __str__(self) -> str:
         name = self.user.username
         if self.user.nick_name:
             name = self.user.nick_name
         return f"{name}|{self.loan_status}"
+
+
 
 
 class Debt(models.Model):
@@ -266,12 +264,28 @@ class Debt(models.Model):
     loan = models.ForeignKey(Loan, on_delete=models.CASCADE)
     debt_amount = models.IntegerField()
     paid_status = models.CharField(max_length=6, choices=DEBT_PAID_STATUS, default='UnPaid')
+    created = models.DateTimeField(auto_now_add=True)
+    expiration_date = models.DateField(blank=True,null=True)
+
 
     def __str__(self) -> str:
         name = self.loan.user.username
         if self.loan.user.nick_name:
             name = self.loan.user.nick_name
         return f"{name} | cut: {str(self.debt_amount)} K"
+
+
+class LatePaymentPenaltyPercentage(models.Model):
+    percentage = models.FloatField(blank=True, null=True)
+    amount = models.IntegerField(blank=True, null=True)
+
+class LatePaymentPenalty(models.Model):
+    fine_amount = models.ForeignKey(LoanInterestPercentage, on_delete=models.PROTECT)
+    debt = models.OneToOneField(Debt, on_delete=models.CASCADE)
+
+    def __str__(self) -> str:
+        return f"{str(self.interest_percentage)} %"
+
 
 
 class PaymentDebtTrackingCode(models.Model):

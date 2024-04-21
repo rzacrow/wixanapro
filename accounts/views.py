@@ -15,7 +15,7 @@ from .forms import SignupForm, LoginForm, UpdateProfileForm, CreateTeamForm, Car
 from django.contrib.contenttypes.models import ContentType
 
 #models
-from .models import User, Wallet, Alt, Realm, Team, TeamDetail, TeamRequest, Notifications, Transaction, InviteMember, RemoveAltRequest, Loan, Debt, WixanaBankDetail, PaymentDebtTrackingCode, Ticket, TicketAnswer, CardDetail, TransactionFee, LoanInterest
+from .models import User, Wallet, Alt, Realm, Team, TeamDetail, TeamRequest, Notifications, Transaction, InviteMember, RemoveAltRequest, Loan, Debt, WixanaBankDetail, PaymentDebtTrackingCode, Ticket, TicketAnswer, CardDetail, TransactionFee, LoanInterestPercentage
 from gamesplayed.models import CutInIR, AttendanceDetail, Attendance
 
 from gamesplayed.forms import DateTimeBootstrap

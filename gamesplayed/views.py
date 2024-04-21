@@ -152,69 +152,73 @@ class ViewAttendance(View):
     def post(self, request, pk):
         try:   
           if request.user.is_authenticated:
+
+            #Get attendance info
             attendance = Attendance.objects.get(id=pk)
             guild = Guild.objects.get(attendance=attendance)
             cut_dist = CutDistributaion.objects.get(attendance=attendance)
-            
             attendance.cycle = Cycle.objects.get(id=request.POST['cycle'])
             attendance.run_type = RunType.objects.get(id=request.POST['run_type'])
-            #attendance.status = request.POST['status']
+                                        #attendance.status = request.POST['status']
 
+            current_boosters = AttendanceDetail.objects.filter(attendane=attendance)
+
+            #Get new values
             realm_type = request.POST['realm_method']
             attendance.date_time = request.POST['date_time']
             attendance.total_pot = request.POST['total_pot']
             attendance.boss_kill = request.POST['boss_kill']
             cut_dist.community = request.POST['community']
             guild.total = request.POST['total_guild']
-
             guild_refunds = request.POST['guild_refunds']
             guild_in_house_customer_pot = request.POST['guild_in_house_customer_pot']
-
             guild.gold_collector = request.POST['guild_gold_collector']
             guild.booster = request.POST['guild_booster']
             guild.guild_bank = request.POST['guild_bank']
             attendance.characters_name = request.POST['character_names']
             attendance.run_notes = request.POST['run_note']
+
+            #Save financial data
             cut_dist.total_guild = guild
             cut_dist.save()
             attendance.save()
             guild.save()
-
-
+                #Check the correctness of the entered data
             if ((not guild_in_house_customer_pot) or (not guild_in_house_customer_pot.isdigit())):
                 guild_in_house_customer_pot = 0
-
-            
             if ((not guild_refunds) or (not guild_refunds.isdigit())):
                 guild_refunds = 0
-
             guild.in_house_customer_pot = guild_in_house_customer_pot
             guild.refunds = guild_refunds
             guild.save()
 
-            indexes = list()
 
-            player_ids = list()
+
+
+            indexes = list()
+            booster_list = list()
 
             #get index of booster
             for key in request.POST.keys():
                 if (key.split('_')[0] == 'booster'):
                     if key.split('_')[2] not in indexes:
                         indexes.append(key.split('_')[2])
+
+
             if indexes:
-
-
                 #create boosters(Attendance Detail)
                 booster_error = 0
 
                 for index in indexes:
                     try:
+                        #Get character and username
                         username_id = request.POST['booster_username_' + index]
                         alt_id = request.POST['booster_alt_' + index]
                         alt = None
                         player = None
+                        print(request.POST['booster_alt_' + index])
 
-                            
+
                         try:
                             alt = Alt.objects.get(id=alt_id)
                         except:
@@ -223,6 +227,7 @@ class ViewAttendance(View):
                         if username_id != "0":
                             player = User.objects.get(id=username_id)
 
+
                         role = Role.objects.get(id=request.POST['booster_role_' + index])
                         missing_boss = request.POST['missing_boss_' + index]
                         multiplier = request.POST['multiplier_' + index]
@@ -230,34 +235,31 @@ class ViewAttendance(View):
 
                         if player:
                             try:
+                                #when the user is already created
                                 booster = AttendanceDetail.objects.get(attendane=attendance,player=player)
-                                player_ids.append(booster.player.id)
+                                booster_list.append(booster.id)
                             except:
+                                #This part of code will be executed when a new user is created
                                 try:
                                     booster = AttendanceDetail.objects.create(attendane=attendance, player=player, alt=alt, role=role, missing_boss=missing_boss, cut=cut, multiplier=multiplier)
                                     booster.save()
-                                    player_ids.append(booster.player.id)
+                                    booster_list.append(booster.id)
                                     continue
                                 except:
                                     booster_error += 1
                                     continue
                             else:
-                                
+                                #when the user is already created
                                 if alt:
+                                    #If the character has not received a new value
                                     if booster.alt == alt:
-                                        booster.alt = alt
+                                        pass
                                     else:
                                         booster = AttendanceDetail.objects.create(attendane=attendance, player=player, alt=alt, role=role, missing_boss=missing_boss, cut=cut, multiplier=multiplier)
                                         booster.save()
-                                        player_ids.append(booster.player.id)
+                                        booster_list.append(booster.id)
                                         continue
-                                else:
-
-                                    if booster.alt != alt:
-                                        booster = AttendanceDetail.objects.create(attendane=attendance, player=player, alt=alt, role=role, missing_boss=missing_boss, cut=cut, multiplier=multiplier)
-                                        booster.save()
-                                        player_ids.append(booster.player.id)
-                                        continue
+                              
 
                                 booster.role = role
                                 booster.missing_boss = missing_boss
@@ -266,71 +268,47 @@ class ViewAttendance(View):
                                 booster.save()
                         else:
                             try:
-                                ghost, alt, realm = alt_id.split('-')
-                                realm = Realm.objects.get_or_create(name=realm)
-
-                                alt = Alt.objects.get_or_create(name=alt, realm=realm[0], status="Verified")
-                                AttendanceDetail.objects.create(attendane=attendance, role=role, player=None, alt=alt[0], missing_boss=missing_boss, multiplier=multiplier, cut=cut)
+                                alt = Alt.objects.get(id=alt_id)
+                                booster = AttendanceDetail.objects.get_or_create(attendane=attendance,  player=None, alt=alt)
+                                booster = booster[0]
+                                booster.role = role
+                                booster.missing_boss = missing_boss
+                                booster.multiplier = multiplier
+                                booster.cut = cut
+                                booster.save()
+                                booster_list.append(booster.id)
                             except:
-                                booster_error += 1
+                                try:
+                                    print(request.POST['booster_alt_' + index])
+                                    ghost, alt, realm = alt_id.split('-')
+                                    realm = Realm.objects.get_or_create(name=realm)
+
+                                    alt = Alt.objects.get_or_create(name=alt, realm=realm[0], status="Verified")
+                                    booster = AttendanceDetail.objects.get_or_create(attendane=attendance,  player=None, alt=alt[0])
+                                    booster = booster[0]
+                                    booster.role = role
+                                    booster.missing_boss = missing_boss
+                                    booster.multiplier = multiplier
+                                    booster.cut = cut
+                                    booster.save()
+                                    booster_list.append(booster.id)
+                                except:
+                                    booster_error += 1
+                                
+
                     except:
                         booster_error += 1
 
-
-
-
-
-                deleted_booster = 0
-
-                #Deleted booster    
-                check_for_deleted = AttendanceDetail.objects.filter(attendane=attendance)
-                exist_player = list()
-
-                for index in indexes:
-                    username_id = request.POST['booster_username_' + index]
-                    alt_id = request.POST['booster_alt_' + index]
-                    alt = None
-                    player = None
-                      
-                    try:
-                        alt = Alt.objects.get(id=alt_id)
-                    except:
-                        alt = None
-
-                    if username_id != "0":
-                        player = User.objects.get(id=username_id)
+                #Delete user if is not existed in list
+                for booster in current_boosters:
+                    is_booster_exist = False
+                    for bl in booster_list:
+                        if booster.id == bl:
+                            is_booster_exist = True
+                            break
                     
-
-                    if player:
-                        try:
-                            item = AttendanceDetail.objects.get(attendane=attendance, player=player, alt=alt)
-                            exist_player.append(item)
-                        except:
-                            pass
-                    else:
-                        try:
-                            ghost, alt, realm = alt_id.split('-')
-                            realm = Realm.objects.get_or_create(name=realm)
-                            alt = Alt.objects.get_or_create(name=alt, realm=realm[0])
-                            item = AttendanceDetail.objects.get(attendane=attendance, player=None, alt=alt[0])
-                            exist_player.append(item)
-
-                        except:
-                            pass
-
-
-                for booster in check_for_deleted:
-                    flag = False
-                    for check_for_delete in exist_player:
-                        if check_for_delete == booster:
-                            flag = True
-                            continue
-                    
-                    
-                    if flag == False:
-                        deleted_booster += 1
+                    if not is_booster_exist:
                         booster.delete()
-
 
 
                 if booster_error > 0:
@@ -396,7 +374,7 @@ class ViewAttendance(View):
             return redirect("view_attendance" , attendance.id)
 
 
-        
+
 
 
 class CreateAttendance(View):
@@ -531,20 +509,25 @@ class CreateAttendance(View):
                                         AttendanceDetail.objects.create(attendane=attendance, role=role, player=player, alt=None, missing_boss=missing_boss, multiplier=multiplier, cut=cut)
                                 else:
                                     try:
-                                        ghost, alt, realm = alt_id.split('-')
-                                        
-                                        realm = Realm.objects.get_or_create(name=realm)
-                                        realm[0].save()
-
-                                        alt = Alt.objects.get_or_create(name=alt, realm=realm[0])
-                                        alt[0].status = 'Verified'
-                                        alt[0].save()
-
-
-                                        AttendanceDetail.objects.create(attendane=attendance, role=role, player=None, alt=alt[0], missing_boss=missing_boss, multiplier=multiplier, cut=cut)
+                                        alt = Alt.objects.get(id=alt_id)
+                                        AttendanceDetail.objects.create(attendane=attendance, role=role, player=None, alt=alt, missing_boss=missing_boss, multiplier=multiplier, cut=cut)
 
                                     except:
-                                        booster_error += 1
+                                        try:
+                                            ghost, alt, realm = alt_id.split('-')
+                                            
+                                            realm = Realm.objects.get_or_create(name=realm)
+                                            realm[0].save()
+
+                                            alt = Alt.objects.get_or_create(name=alt, realm=realm[0])
+                                            alt[0].status = 'Verified'
+                                            alt[0].save()
+
+
+                                            AttendanceDetail.objects.create(attendane=attendance, role=role, player=None, alt=alt[0], missing_boss=missing_boss, multiplier=multiplier, cut=cut)
+
+                                        except:
+                                            booster_error += 1
                             except:
                                 booster_error += 1
 
