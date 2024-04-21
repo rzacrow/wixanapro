@@ -166,6 +166,7 @@ class AttendanceInline(StackedInline):
     model = Attendance
     form = at_in_form
 
+    extra = 0
     fieldsets = (
             (None, {
                 "fields": (
@@ -174,7 +175,6 @@ class AttendanceInline(StackedInline):
                 ),
             }),
         )
-    extra = 1
 
 
 @admin.register(Cycle)
@@ -194,7 +194,7 @@ class CycleAdmin(ModelAdmin):
             return None
         
     list_display = ['start_date_display', 'end_date_display', 'status']
-    ordering = ['-start_date']
+    ordering = ['-status', '-start_date']
 
     list_filter = [
         'start_date',
@@ -289,8 +289,6 @@ class PaymentAdmin(ModelAdmin):
         insufficient_balance = False
         insufficient_balance_list = list()
 
-        string = ""
-
         for obj in objects:
             try:
                 if obj.detail.player:
@@ -303,14 +301,11 @@ class PaymentAdmin(ModelAdmin):
                     else:
                         wallet.amount -= int(obj.detail.cut)
                         wallet.save()
-                        string += f"{obj.string},"
 
                         Transaction.objects.create(requester=obj.detail.player, status='PAID', paid_date=timezone.now().today(), amount=obj.detail.cut, currency='CUT', alt=obj.detail.payment_character, caption="---Cycle---")
                 else:
                     wallet_fail = True
                     wallet_fail_list.append(obj.detail.alt)
-                    print(obj.string)
-                    string += f"{obj.string},"
                     obj.save()
             except:
                 pass
@@ -323,7 +318,6 @@ class PaymentAdmin(ModelAdmin):
         if insufficient_balance:
             messages.add_message(request, messages.WARNING, f"The account balance of the following users is less than the amount paid, {insufficient_balance_list}, and their payment status was set as 'Unpaid'")
         
-        messages.add_message(request, messages.SUCCESS, string)
 
 
     @admin.action(description="Paid status to 'True'")
@@ -333,8 +327,20 @@ class PaymentAdmin(ModelAdmin):
         queryset.update(is_paid=True)
         self.is_paid_change(objects=objects, request=request)
 
+    @admin.action(description="get string of selected items")
+    def get_string(self, request, queryset):
+        strings = queryset.values_list('string', flat=True)
+        string_list = ""
+
+        for string in strings:
+            string_list += (f"{string}, \n\n")
+
+
+        messages.add_message(request, messages.SUCCESS, string_list)
+  
     actions = [
-        'change_to_ispaid'
+        'change_to_ispaid',
+        'get_string'
     ]
 
     def save_model(self, request, obj, form, change):

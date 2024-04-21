@@ -1,13 +1,93 @@
 from django.shortcuts import render, redirect, reverse, HttpResponse, HttpResponseRedirect
 from django.views.generic import View
 from django.contrib import messages
-from .models import Attendance, AttendanceDetail, Cycle, RunType, Realm, Role, SpecificTime, Guild, CutDistributaion, CurrentRealm
+from .models import Attendance, AttendanceDetail, Cycle, RunType, Realm, Role, SpecificTime, Guild, CutDistributaion, CurrentRealm, Payment
 from .forms import DateTimeBootstrap
 from django.utils import timezone
-from accounts.models import User, Alt, Team, TeamDetail
+from accounts.models import User, Alt, Team, TeamDetail, Wallet, Transaction
 import datetime
 from django.db.models import Sum
 import json
+
+
+
+class CyclePayment(View):
+    def post(self, request):
+        if request.user.is_authenticated:
+            if request.user.is_superuser:
+                wallet_fail = False
+                wallet_fail_list = list()
+
+                insufficient_balance = False
+                insufficient_balance_list = list()
+
+                for item in request.POST.keys():
+                    if item.isnumeric():
+                        try:
+                            obj = Payment.objects.get(id=item)
+
+                            if obj.detail.player:
+                                wallet = Wallet.objects.get(player=obj.detail.player)
+                                if wallet.amount < int(obj.detail.cut):
+                                    insufficient_balance = True
+                                    insufficient_balance_list.append(obj.detail.player.username)
+                                    obj.is_paid = False
+                                    obj.save()
+                                else:
+                                    wallet.amount -= int(obj.detail.cut)
+                                    wallet.save()
+                                    obj.is_paid = True
+                                    obj.paid_date = datetime.datetime.now()
+                                    obj.save()
+
+                                    character = None
+
+                                    if obj.detail.payment_character:
+                                        character = obj.detail.payment_character
+                                    elif obj.detail.alt:
+                                        character = obj.detail.alt
+
+
+                                    Transaction.objects.create(requester=obj.detail.player, status='PAID', paid_date=datetime.datetime.now(), amount=obj.detail.cut, currency='CUT', alt=character, caption="---Cycle---")
+                            else:
+                                wallet_fail = True
+                                wallet_fail_list.append(obj.detail.alt)
+                                obj.paid_date = datetime.datetime.now()
+                                obj.is_paid = True
+                                obj.save()
+                        except:
+                            pass
+
+                            
+                    
+                if wallet_fail:
+                    messages.add_message(request, messages.WARNING, f"The wallets of {wallet_fail_list} users were not found, But their payment status was set as 'paid'")
+
+                if insufficient_balance:
+                    messages.add_message(request, messages.WARNING, f"The account balance of the following users is less than the amount paid, {insufficient_balance_list}, and their payment status was set as 'Unpaid'")
+
+                messages.add_message(request, messages.SUCCESS, "Changes saved!")
+                return redirect(reverse('dashboard') + "?tab=cycle-payments")
+                    
+
+            
+
+
+
+
+        messages.add_message(request, messages.WARNING, 'You are not allowed to do this!')
+        return redirect('dashboard')
+
+
+
+
+
+
+
+
+
+
+
 
 class ViewAttendance(View):
     def get(self, request, pk):
@@ -363,9 +443,9 @@ class CreateAttendance(View):
 
 
     def post(self, request):
-        #try:
+        try:
             if request.user.is_authenticated:
-                cycle = Cycle.objects.get(id=request.POST['cycle'])
+                cycle = Cycle.objects.filter(id=request.POST['cycle']).last()
                 run_type = RunType.objects.get(id=request.POST['run_type'])
                 #status = request.POST['status']
                 realm_type = request.POST['realm_method']
@@ -515,7 +595,7 @@ class CreateAttendance(View):
                 
                 messages.add_message(request, messages.WARNING, 'All fields except run_note and character_names are mandatory')
                 return redirect('create_attendance')
-        #except:
+        except:
             messages.add_message(request, messages.ERROR, 'Something went wrong!')
             return redirect('dashboard')
         

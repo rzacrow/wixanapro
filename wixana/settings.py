@@ -198,11 +198,11 @@ UNFOLD = {
                     #    "badge": "@",
                     #    "link": reverse_lazy("admin:gamesplayed_attendance_changelist"),
                     #},
-                    {
-                        "title": _("Cycle payments"),
-                        "icon": "point_of_sale",
-                        "link": reverse_lazy("admin:gamesplayed_payment_changelist"),
-                    },
+                    #{
+                    #    "title": _("Cycle payments"),
+                    #    "icon": "point_of_sale",
+                    #    "link": reverse_lazy("admin:gamesplayed_payment_changelist"),
+                    #},
                     {
                         "title": _("User Wallet"),
                         "icon": "account_balance_wallet",

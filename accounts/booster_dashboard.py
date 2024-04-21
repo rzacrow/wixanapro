@@ -1,5 +1,5 @@
 from .models import User, Alt, Realm, TeamDetail, TeamRequest, Wallet, Transaction, Notifications, Team, InviteMember, RemoveAltRequest, Debt, Loan, CardDetail
-from gamesplayed.models import Attendance, CutInIR, AttendanceDetail
+from gamesplayed.models import Attendance, CutInIR, AttendanceDetail, Payment, Cycle
 from .forms import UpdateProfileForm, CardDetailForm
 from gamesplayed.models import CutInIR, Cycle, RunType
 from django.db.models import Sum
@@ -8,6 +8,24 @@ from django.db.models import Q
 from datetime import timedelta
 
 import math
+
+def cycle_payments():
+    payments_history = Payment.objects.filter(is_paid=True).order_by('-paid_date')
+
+    return payments_history
+
+def cycle_unpaid():
+    unpaid = Payment.objects.filter(is_paid=False).order_by('-cycle__start_date')
+
+    return unpaid
+
+
+
+def cycle():
+    cycle = Cycle.objects.filter(status="C")
+
+    return cycle
+
 
 def get_profile(pk) -> str:
     profile = User.objects.filter(id=pk).first()

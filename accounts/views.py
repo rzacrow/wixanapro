@@ -311,6 +311,10 @@ class Dashboard(View):
                 if (user.is_staff) and (user.has_perm('gamesplayed.add_attendance')):
                     has_perm_view_attendance_admin = True
                     context['admin_attendances'] = booster_dashboard.attendance_admin()
+                    context['cycle_payments'] = booster_dashboard.cycle_payments()
+                    context['cycle'] = booster_dashboard.cycle()
+                    context['cycle_unpaid'] = booster_dashboard.cycle_unpaid()
+
 
                 try:
                     context['wixana_card_detail'] = WixanaBankDetail.objects.last()

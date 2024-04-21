@@ -28,6 +28,7 @@
                     <form method='post'>
                         {% csrf_token %}
                     <div class="flex-between">
+                 
                         <h3 class="center-icon-text color-white-important" id="attendance_title">
                             <span class="material-symbols-outlined">
                                 note_stack_add
@@ -55,6 +56,7 @@
                                         <div class="col-md-6 col-lg-4 col-xl-3">
                                             <label for="cycle-select" class="form-label">Cycle</label>
                                             <select id="cycle-select" name="cycle" class="select-custom-style">
+                                                <option value="0">Select cycle</option>
                                                 {% if cycles %}
                                                     {% for cycle in cycles %}
                                                         <option value="{{cycle.id}}">{{cycle.start_date|date:"Y-m-d H:i"}}</option>
@@ -443,7 +445,13 @@
                                                         </div>
 
                                                         <div class="flex-end">
-                                                            <button type="button" onclick="add_new_booster()" class="btn-box-rgb color-white-important" id="add-new-booster">
+                                                            <button type="button" onclick="clear_all()" class="btn-box-rgb center-icon-text center-r-c color-white-important" id="clear_all_booster">
+                                                                <span class="material-symbols-outlined">
+                                                                    restart_alt
+                                                                    </span>
+                                                            </button>
+
+                                                            <button type="button" onclick="add_new_booster()" class="btn-box-rgb from-left-10 color-white-important" id="add-new-booster">
                                                                 +
                                                             </button>
                                                         </div>
@@ -744,7 +752,7 @@
                 const alt_label = document.createElement('label');
                 alt_label.className = 'form-label color-white-important';
                 alt_label.setAttribute('for',`booster_alt_${booster_object_counter}`);
-                alt_label.innerText = 'Alt';
+                alt_label.innerText = 'Character name';
 
                 //alt_select
                 const select_alt = document.createElement('div');
@@ -752,7 +760,7 @@
                 select_alt.innerHTML = `
                     <div class="mb-3">
                         <select name="booster_alt_${booster_object_counter}" id="booster_alt_${booster_object_counter}" class="form-select booster_alts_select" onchange="select_booster_alt(${booster_object_counter})">
-                            <option value="0">Alt</option>
+                            <option value="0">Character</option>
                             {% if alts %}
                                 {% for alt in alts %}
                                     <option value="{{alt.id}}">{{alt}}</option>
@@ -762,7 +770,7 @@
                     </div>`
                 ;
 
-
+            
 
 
             //missing boss
@@ -890,6 +898,10 @@
             set_default_role();
         }
 
+        function clear_all(){
+            document.getElementById("parent_booster_detail").innerHTML = "";
+            add_new_booster();
+        }
 
         //TODO:When changing the alt select box, the username should be adjusted accordingly
         function select_booster_alt(index){
@@ -910,7 +922,7 @@
             let username_id = document.getElementById('booster_username_' + index).value;
             if (username_id != "0") {
                 alt = document.getElementById("booster_alt_" + index);
-                alt.innerHTML = '<option value="0">Alt</option>';
+                alt.innerHTML = '<option value="0">Character name</option>';
                 {% for alt_item in alts %}
                     {% if alt_item.player %}
                     if ("{{alt_item.player.id}}" == username_id){
@@ -1006,6 +1018,18 @@
 
 
         function add_ghost_booster(alt, realm){
+            var get_alts = document.getElementsByClassName("booster_alts_select");
+
+            if (get_alts != null){
+                for(item of get_alts){
+                    var value = item.value.split('-');
+
+                    if (value[0] == "ghost"){
+                        if ((value[1] == alt) && (value[2] == realm)){return;}
+                    }
+                }
+            }
+            
             add_new_booster();
 
             alt_opt = document.createElement('option');
@@ -1014,15 +1038,14 @@
 
             let current_id = booster_object_counter;
             select_alt = document.getElementById('booster_alt_' + current_id);
-            console.log(current_id);
-            console.log(alt_opt);
+         
+            
             select_alt.appendChild(alt_opt);
             select_alt.value = alt_opt.value;
 
         }
 
         function register_ghost(){
-            console.log(wrong);
             for (obj of wrong){
                 let alt = obj.split(" ")[0];
                 let realm = obj.split(" ")[1];

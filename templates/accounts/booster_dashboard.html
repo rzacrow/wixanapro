@@ -28,6 +28,12 @@
                                 library_add
                                 </span>&nbsp;New Attendance
                         </button>
+
+                        <button class="nav-link center-icon-text color-white none-hover {% if tab == 'cycle-payments'%}active{% endif %}" id="pills-cycle-payments-tab" data-bs-toggle="pill" data-bs-target="#pills-cycle-payments" type="button" role="tab" aria-controls="pills-new-attendance" aria-selected="false" {% if is_user %}disabled{% endif %}>
+                            <span class="material-symbols-outlined">
+                                point_of_sale
+                                </span>&nbsp;Cycle payments
+                        </button>
                         {% endif %}
 
                         <button class="nav-link center-icon-text color-white none-hover position-relative {% if tab == 'team'%}active{% endif %}" id="v-pills-teams-tab" data-bs-toggle="pill" data-bs-target="#v-pills-teams" type="button" role="tab" aria-controls="v-pills-teams" aria-selected="false" {% if is_user %}disabled{% endif %}>
@@ -285,6 +291,226 @@
                                 </div>
                             </div>
                         </div>
+
+
+
+
+
+                        <!--Cycle payments -->
+                        <div class="tab-pane {% if tab == 'cycle-payments' %}show active{% endif %} fade dashboard-detail" id="pills-cycle-payments" role="tabpanel" aria-labelledby="pills-cycle-payments-tab" tabindex="0">
+                            <!-- Unpaid -->
+                            <div class="row">
+                                <div class="col">
+                                    <div class="dashboard-detail-item">
+                                        <div class="row">
+                                            <div class="col col-md-2 align-self-center">
+                                                <p class="center-icon-text without-space-important">
+                                                    <span class="material-symbols-outlined">
+                                                        price_change
+                                                        </span>&nbsp;Un paid
+                                                </p>
+                                            </div>
+
+                                            <div class="col col-lg-4 align-self-center without-space-important">
+                                                <select name="cycle_payments_filter" id="cycle_payments_filter" class="form-select">
+                                                    <option value="0">Filter by cycle</option>
+                                                    {% if cycle %}
+                                                        {% for cc in cycle%}
+                                                            <option value="{{cc.id}}">{{cc}}</option>
+                                                        {% endfor %}
+                                                    {% endif %}
+                                                </select>
+                                            </div>
+
+                                        </div>
+                                        <hr>
+                                        {% if cycle_unpaid %}
+                                        <form method="post" action="{% url 'cycle_payment' %}">
+                                            {% csrf_token %}
+                                            <div class="row">
+                                                <div class="col-lg-6"></div>
+                                                <div class="col-lg-3 col-sm-4 col flex-end"><button type="button" class="btn btn-outline-porpule max-height-37 color-white-important" id="btn_get_string" data-bs-toggle="modal" data-bs-target="#getStringModal" onclick="get_string();"><img src="{% static 'accounts/images/letter.png' %}" width="30"></button></div>
+                                                <div class="col-lg-3 col-sm-8 col flex-end"><input type="submit" value="Submit changes" class="btn btn-porpule color-white-important"></div>
+                                            </div>
+                                            <div class="table-responsive">
+                                                <table class="table">
+                                                    <thead>
+                                                        <th class="bg-transparent color-white-important"><span class="material-symbols-outlined">
+                                                            face_5
+                                                            </span></th>
+                                                        <th class="bg-transparent color-white-important"><span class="material-symbols-outlined">
+                                                            mark_email_unread
+                                                            </span></th>
+                                                        {% if cp.paid_date %}<th class="bg-transparent color-white-important"><span class="material-symbols-outlined">
+                                                            event_available
+                                                            </span></th>{% endif %}                                                     
+                                                        <th class="bg-transparent color-white-important"><span class="material-symbols-outlined">
+                                                            monetization_on
+                                                            </span></th>
+                                                        <th class="bg-transparent color-white-important"><span class="material-symbols-outlined">
+                                                            robot
+                                                            </span></th>
+                                                        <th class="bg-transparent color-white-important"><span class="material-symbols-outlined">
+                                                            done_all
+                                                            </span></th>
+                                                    </thead>
+                                                    <tbody id="cy_unpaid_parent">
+                                                {% for cp in cycle_unpaid %}
+                                                        <tr>
+                                                            <td class="bg-transparent color-white-important"><a href="#" class="pink-link">{% if cp.detail.player %}{{cp.detail.player}}{% else %}-{% endif %}</a></td>
+                                                            <td class="bg-transparent color-white-important" id="cp_string_{{cp.id}}">{{cp.string}}</td>
+                                                            {% if cp.paid_date %}<td class="bg-transparent color-white-important">{{cp.paid_date|date:"Y-m-d"}}</td>{% endif %}
+                                                            <td class="bg-transparent color-white-important unit_per_thousand">{{cp.detail.cut}}</td>
+                                                            <td class="bg-transparent color-white-important attendance_total_pot">{% if cp.detail.payment_character %} {{cp.detail.payment_character}} {% elif cp.detail.alt %} {{cp.detail.alt}} {% endif %} </td>
+                                                            <td class="bg-transparent color-white-important">
+                                                                <div class="form-check">
+                                                                    <input class="form-check-input padding-5 is_paid_status" type="checkbox" name="{{cp.id}}" id="paid_status_{{cp.id}}" {% if cp.is_paid %}checked{% endif %}>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                {% endfor %}
+                                                    </tbody>                                      
+                                                </table>
+                                            </div>
+                                        </form>
+                                        {% else %}
+                                            <p class="min-height-200 center-r-c"><span class="material-symbols-outlined color-red">
+                                            close
+                                            </span>There aren't any Cycle-Payments
+                                            </p>
+                                        {% endif %}
+
+                                        <script>
+                                            document.getElementById('cycle_payments_filter').addEventListener('change', function() {
+                                                {% if cycle %}
+                                                    var cycle_id = this.value;
+                                                    {% for cc in cycle %}
+                                                        if ("{{cc.id}}" == cycle_id){
+                                                            let cc_unpaid_parent = document.getElementById("cy_unpaid_parent");
+                                                            cc_unpaid_parent.innerHTML = "";
+                                                            {% if cycle_unpaid %}
+
+                                                                {% for cp in cycle_unpaid %}
+                                                                    {% if cc.id == cp.cycle.id %}
+                                                                        var tr_tag = document.createElement("tr");
+                                                                        tr_tag.innerHTML = `
+                                                                        <td class="bg-transparent color-white-important"><a href="#" class="pink-link">{% if cp.detail.player %}{{cp.detail.player}}{% else %}-{% endif %}</a></td>
+                                                                        <td class="bg-transparent color-white-important" id="cp_string_{{cp.id}}">{{cp.string}}</td>
+                                                                        {% if cp.paid_date %}<td class="bg-transparent color-white-important">{{cp.paid_date|date:"Y-m-d"}}</td>{% endif %}
+                                                                        <td class="bg-transparent color-white-important">{{cp.detail.cut}}</td>
+                                                                        <td class="bg-transparent color-white-important attendance_total_pot">{% if cp.detail.payment_character %} {{cp.detail.payment_character}} {% elif cp.detail.alt %} {{cp.detail.alt}} {% endif %} </td>
+                                                                        <td class="bg-transparent color-white-important">
+                                                                            <div class="form-check">
+                                                                                <input class="form-check-input padding-5 is_paid_status" type="checkbox" name="{{cp.id}}" id="paid_status_{{cp.id}}" {% if cp.is_paid %}checked{% endif %}>
+                                                                            </div>
+                                                                        </td>
+                                                                        `;
+
+                                                                        cc_unpaid_parent.appendChild(tr_tag);
+                                                                    {% endif %}
+                                                                {% endfor %}
+
+                                                            {% endif %}
+                                                        }
+                                                    {% endfor %}
+                                                {% endif %}
+                                              });
+                                        </script>
+                                    </div>
+                                </div>
+                            </div>
+                            
+
+
+
+                            <!-- History -->
+                            <div class="row from-top-25">
+                                <div class="col">
+                                    <div class="dashboard-detail-item">
+                                        <div class="row">
+                                            <div class="col col-md-2 align-self-center">
+                                                <p class="center-icon-text without-space-important">
+                                                    <span class="material-symbols-outlined">
+                                                        history
+                                                        </span>&nbsp;Paid history
+                                                </p>
+                                            </div>
+
+                                            <div class="col col-lg-4 align-self-center without-space-important">
+                                    
+                                            </div>
+
+                                        </div>
+                                        <hr>
+                                        {% if cycle_payments %}
+                                        <form>
+                                            {% csrf_token %}
+                                       
+                                            
+                                            <div class="table-responsive">
+                                                <table class="table">
+                                                    <thead>
+                                                        <th class="bg-transparent color-white-important"><span class="material-symbols-outlined">
+                                                            face_5
+                                                            </span></th>
+                                                        <th class="bg-transparent color-white-important"><span class="material-symbols-outlined">
+                                                            mark_email_unread
+                                                            </span></th>
+                                                        {% if cp.paid_date %}<th class="bg-transparent color-white-important"><span class="material-symbols-outlined">
+                                                            event_available
+                                                            </span></th>{% endif %}                                                     
+                                                        <th class="bg-transparent color-white-important"><span class="material-symbols-outlined">
+                                                            monetization_on
+                                                            </span></th>
+                                                        <th class="bg-transparent color-white-important"><span class="material-symbols-outlined">
+                                                            robot
+                                                            </span></th>
+                                                        <th class="bg-transparent color-white-important"><span class="material-symbols-outlined">
+                                                            done_all
+                                                            </span></th>
+                                                    </thead>
+                                                    <tbody>
+                                                {% for cp in cycle_payments %}
+                                                        <tr>
+                                                            <td class="bg-transparent color-white-important"><a href="#" class="pink-link">{% if cp.detail.player %}{{cp.detail.player}}{% else %}-{% endif %}</a></td>
+                                                            <td class="bg-transparent color-white-important">{{cp.string}}</td>
+                                                            {% if cp.paid_date %}<td class="bg-transparent color-white-important">{{cp.paid_date|date:"Y-m-d"}}</td>{% endif %}
+                                                            <td class="bg-transparent color-white-important unit_per_thousand">{{cp.detail.cut}}</td>
+                                                            <td class="bg-transparent color-white-important attendance_total_pot">{% if cp.detail.payment_character %} {{cp.detail.payment_character}} {% elif cp.detail.alt %} {{cp.detail.alt}} {% endif %} </td>
+                                                            <td class="bg-transparent color-white-important">
+                                                                <div class="form-check">
+                                                                    <input class="form-check-input padding-5" type="checkbox"{% if cp.is_paid %}checked{% endif %} disabled >
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                {% endfor %}
+                                                    </tbody>                                      
+                                                </table>
+                                            </div>
+                                        </form>
+                                        {% else %}
+                                            <p class="min-height-200 center-r-c"><span class="material-symbols-outlined color-red">
+                                            close
+                                            </span>There aren't any Cycle-Payments
+                                            </p>
+                                        {% endif %}
+
+                                        <!--<script>
+                                            let fields = document.getElementsByClassName('attendance_total_pot');
+                                            let value;
+
+                                            for (field of fields){
+                                                value = field.innerText;
+                                                value = value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                                                field.innerText = value;
+                                            }
+                                        </script>-->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        
                         {% endif %}
 
 
@@ -1522,12 +1748,19 @@
                                         <input type="hidden" name="percentage" id="percentage">
 
                                         <button type="submit" class="btn btn-porpule color-white-important from-top-15 full-width" >Accept and continue</button>
-                                    </form
+                                    </form>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+
+
+
+
+
+
+
                 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.2/jquery.min.js" integrity="sha512-tWHlutFnuG0C6nQRlpvrEhE4QpkG1nn2MOUMWmUeRePl4e3Aki0VB6W1v3oLjFtd0hVOtRQ9PHpSfN6u6/QXkQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
                 <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
                 <script>
@@ -1637,6 +1870,87 @@
 
 
 
+            <!-- Payment request modal -->
+            <div class="modal fade" id="getStringModal" aria-hidden="true" aria-labelledby="getStringModalLabel" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+
+                        <div class="modal-header">
+                            <h1 class="modal-title fs-5" id="getStringModalLabel">WIXANA</h1>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+
+                        <div class="modal-body">
+
+                            <h6 id="string"></h6>
+                            <div class="row">
+                                <div class="col">
+                                    <button class="btn btn-porpule color-white-important from-top-15 full-width" onclick="copyDivToClipboard()" ><img src="{% static 'accounts/images/copy.png' %}" width="30">&nbsp;Copy</button>
+                                    <div id="snackbar">Copied!</div>
+
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+
+
+
+
+
+
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.2/jquery.min.js" integrity="sha512-tWHlutFnuG0C6nQRlpvrEhE4QpkG1nn2MOUMWmUeRePl4e3Aki0VB6W1v3oLjFtd0hVOtRQ9PHpSfN6u6/QXkQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+                <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+                <script>
+
+                    function get_string(){
+                        var cb = document.getElementsByClassName("is_paid_status");
+                        var string = "";
+                        var is_checked = false;
+                        
+                        for (let item of cb ){
+                            if (item.checked == true){
+                                is_checked = true;
+                                let id = item.getAttribute('id');
+                                id = id.split('_')[2];
+                                var cp_string = document.getElementById("cp_string_" + id);
+                                var len_string = cp_string.innerText.length;
+                                if (len_string > 0){
+                                    string += cp_string.innerText + ",\n";
+                                }
+                            }
+                        }
+
+                        if (is_checked == true ){
+                            document.getElementById("string").innerText = string;
+                        }else{
+                            document.getElementById("string").innerText = "You have not selected an item";
+                        }
+
+
+                    }
+
+                    function copyDivToClipboard(){
+                        var range = document.createRange();
+                        range.selectNode(document.getElementById("string"));
+                        window.getSelection().removeAllRanges(); // clear current selection
+                        window.getSelection().addRange(range); // to select text
+                        document.execCommand("copy");
+                        window.getSelection().removeAllRanges();// to deselect
+
+                                                // Get the snackbar DIV
+                        var x = document.getElementById("snackbar");
+
+                        // Add the "show" class to DIV
+                        x.className = "show";
+
+                        // After 3 seconds, remove the show class from DIV
+                        setTimeout(function(){ x.className = x.className.replace("show", ""); }, 3000);
+                    }
+                </script>
+            </div>
 
 
 
@@ -1772,6 +2086,14 @@
               </div>
 
               <script>
+                //change unit amount to thousand
+                var change_unit = document.getElementsByClassName("unit_per_thousand");
+                for (let item of change_unit){
+                    item.innerText = (item.innerText / 1000) + " K";
+                }
+
+
+
                 function waitForLoad2(id, callback){
                     var timer = setInterval(function(){
                         if(document.getElementById('btn-click-calc')){
