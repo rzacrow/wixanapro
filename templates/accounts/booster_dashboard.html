@@ -277,16 +277,7 @@
                                             </span>There aren't any attendance
                                             </p>
                                         {% endif %}
-                                        <script>
-                                            let fields = document.getElementsByClassName('attendance_total_pot');
-                                            let value;
-
-                                            for (field of fields){
-                                                value = field.innerText;
-                                                value = value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-                                                field.innerText = value;
-                                            }
-                                        </script>
+                                        
                                     </div>
                                 </div>
                             </div>
@@ -380,42 +371,6 @@
                                             </p>
                                         {% endif %}
 
-                                        <script>
-                                            document.getElementById('cycle_payments_filter').addEventListener('change', function() {
-                                                {% if cycle %}
-                                                    var cycle_id = this.value;
-                                                    {% for cc in cycle %}
-                                                        if ("{{cc.id}}" == cycle_id){
-                                                            let cc_unpaid_parent = document.getElementById("cy_unpaid_parent");
-                                                            cc_unpaid_parent.innerHTML = "";
-                                                            {% if cycle_unpaid %}
-
-                                                                {% for cp in cycle_unpaid %}
-                                                                    {% if cc.id == cp.cycle.id %}
-                                                                        var tr_tag = document.createElement("tr");
-                                                                        tr_tag.innerHTML = `
-                                                                        <td class="bg-transparent color-white-important"><a href="#" class="pink-link">{% if cp.detail.player %}{{cp.detail.player}}{% else %}-{% endif %}</a></td>
-                                                                        <td class="bg-transparent color-white-important" id="cp_string_{{cp.id}}">{{cp.string}}</td>
-                                                                        {% if cp.paid_date %}<td class="bg-transparent color-white-important">{{cp.paid_date|date:"Y-m-d"}}</td>{% endif %}
-                                                                        <td class="bg-transparent color-white-important">{{cp.detail.cut}}</td>
-                                                                        <td class="bg-transparent color-white-important attendance_total_pot">{% if cp.detail.payment_character %} {{cp.detail.payment_character}} {% elif cp.detail.alt %} {{cp.detail.alt}} {% endif %} </td>
-                                                                        <td class="bg-transparent color-white-important">
-                                                                            <div class="form-check">
-                                                                                <input class="form-check-input padding-5 is_paid_status" type="checkbox" name="{{cp.id}}" id="paid_status_{{cp.id}}" {% if cp.is_paid %}checked{% endif %}>
-                                                                            </div>
-                                                                        </td>
-                                                                        `;
-
-                                                                        cc_unpaid_parent.appendChild(tr_tag);
-                                                                    {% endif %}
-                                                                {% endfor %}
-
-                                                            {% endif %}
-                                                        }
-                                                    {% endfor %}
-                                                {% endif %}
-                                              });
-                                        </script>
                                     </div>
                                 </div>
                             </div>
@@ -495,16 +450,6 @@
                                             </p>
                                         {% endif %}
 
-                                        <!--<script>
-                                            let fields = document.getElementsByClassName('attendance_total_pot');
-                                            let value;
-
-                                            for (field of fields){
-                                                value = field.innerText;
-                                                value = value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-                                                field.innerText = value;
-                                            }
-                                        </script>-->
                                     </div>
                                 </div>
                             </div>
@@ -765,30 +710,6 @@
                                                                     </div>
 
                                                                     <!-- If user was selected -->
-                                                                    <script>
-                                                                        var checkboxes = document.getElementsByClassName("booster-selected-checkbox");
-                                                                        var invitebtn = document.getElementById('inviteSellectedUserBtn');
-                                                                        invitebtn.style.display = 'none';
-                                                                        for (checkbox of checkboxes){
-                                                                            checkbox.addEventListener('change', function() {
-                                                                                var flag = false;
-                                                                                if (this.checked) {
-                                                                                    var elements = document.getElementsByClassName("price-listener");
-                                                                                    invitebtn.style.display = 'flex';
-                                                                                }else{
-                                                                                    for (checkbox of checkboxes){
-                                                                                        if (checkbox.checked){
-                                                                                            flag = true;
-                                                                                            break;
-                                                                                        }
-                                                                                    }
-                                                                                    if (flag == false){
-                                                                                        invitebtn.style.display = 'none';
-                                                                                    }
-                                                                                }
-                                                                            });
-                                                                        }                                                                        
-                                                                    </script>
 
 
                                                                 </div>
@@ -839,7 +760,7 @@
                                                             <div class="row">
                                                                 <div class="col">
                                                                 {% for team in teams %}
-                                                                    <a href="{% url 'team_detail' team.name team.id %}">
+                                                                    <a href="{% url 'team_detail' team.id %}">
                                                                         <div class="alert alert-dark rounded flex-between align-center shadow-lg shadow-none-hover">
                                                                             <img src="{% static 'accounts/images/team.png' %}" class="img-icon"> {{team.name}}
                                                                         </div>
@@ -932,25 +853,6 @@
                                         </div>
 
 
-                                        <script>
-                                            pay_chars = document.getElementsByClassName("payment_character");
-
-                                            for (item of pay_chars){
-                                                let id = item.getAttribute('id');
-                                                id = id.split('_')[2];
-
-                                                pay_select = document.getElementById('payment_character_' + id);
-                                                {% for match in matches.active_cycle %}
-                                                    if ( "{{match.id}}" == id){
-                                                        {% if match.payment_character %}
-                                                            pay_select.value = "{{match.payment_character.id}}";
-                                                        {% else %}
-                                                            document.getElementById("pay_char_help_text_" + id).innerText = "* You have not selected a character to pay";
-                                                        {% endif %}
-                                                    }
-                                                {% endfor %}
-                                            }
-                                        </script>
 
                                         <!-- History -->
                                         <div class="dashboard-detail-item from-top-25">
@@ -1054,18 +956,6 @@
                                                 </div>
 
                                                 <!-- Payment method: active and deactive two Select element -->
-                                                <script>
-                                                    function payment_request_method() {
-                                                        method = document.getElementById("payment-request-type").value;
-                                                        if (method == 'IR'){
-                                                            document.getElementById('select-alt').style.display = 'none';
-                                                            document.getElementById('select-card').style.display = 'block';
-                                                        } else if (method == 'CUT'){
-                                                            document.getElementById('select-alt').style.display = 'block';
-                                                            document.getElementById('select-card').style.display = 'none';
-                                                        }
-                                                    }
-                                                </script>
 
                                                 <!-- Financial Reports -->
                                                 <div class="col-md-6 from-top-25-mobile">
@@ -1122,64 +1012,6 @@
                                             </div>
 
                                             <!-- exchange price -->
-                                            <script>
-                                                var checkbox = document.getElementById("currenciesSwitch");
-                                                var checkbox2 = document.getElementById("currenciesSwitch2");
-
-                                                checkbox.addEventListener('change', function() {
-                                                if (this.checked) {
-                                                    var elements = document.getElementsByClassName("price-listener");
-                                                    for (element of elements){
-                                                        var before = element.innerText.split(" ");
-                                                        element.innerText = before[0]{% if cut_per_ir %} * {{cut_per_ir}}{% endif %};
-                                                        if (element.innerText != "0" ){
-                                                            {% if cut_per_ir %}
-                                                                element.innerText += " T";
-                                                            {% else %}
-                                                                element.innerText += ' K';
-                                                            {% endif %}
-                                                        }
-                                                    }
-                                                } else {
-                                                    var elements = document.getElementsByClassName("price-listener");
-                                                    for (element of elements){
-                                                        var before = element.innerText.split(" ");
-                                                        element.innerText = before[0]{% if cut_per_ir %} / {{cut_per_ir}}{% endif %};
-                                                        if (element.innerText != "0"){
-                                                            element.innerText += " K"
-                                                        }
-                                                    }
-                                                }
-                                                });
-
-
-                                                checkbox2.addEventListener('change', function() {
-                                                    if (this.checked) {
-                                                        var elements = document.getElementsByClassName("price-listener-2");
-                                                        for (element of elements){
-                                                            var before = element.innerText.split(" ");
-                                                            element.innerText = before[0]{% if cut_per_ir %} * {{cut_per_ir}}{% endif %};
-                                                            if (element.innerText != "0" ){
-                                                                {% if cut_per_ir %}
-                                                                    element.innerText += " T";
-                                                                {% else %}
-                                                                    element.innerText += ' K';
-                                                                {% endif %}
-                                                            }
-                                                        }
-                                                    } else {
-                                                        var elements = document.getElementsByClassName("price-listener-2");
-                                                        for (element of elements){
-                                                            var before = element.innerText.split(" ");
-                                                            element.innerText = before[0]{% if cut_per_ir %} / {{cut_per_ir}}{% endif %};
-                                                            if (element.innerText != "0"){
-                                                                element.innerText += " K"
-                                                            }
-                                                        }
-                                                    }
-                                                    });
-                                            </script>
-                                            
 
                                         <!-- Transaction -->
                                             <div class="row">
@@ -1368,31 +1200,6 @@
                                                         </div>
                                                 </div>
                                             </div>
-
-                                            <script>
-                                                document.getElementById('loan_method').addEventListener('change', function() {
-                                                    if (this.value == 1){
-                                                        document.getElementById("id_amount").placeholder = "Enter amount in 'Tomans(IR)'";
-
-                                                        document.getElementById("loan_character_payment").style['display'] = 'none';
-                                                        document.getElementById("loan_character_payment_label").style['display'] = 'none';
-
-                                                        document.getElementById("loan_select_card").style['display'] = 'block';
-                                                        document.getElementById("loan_select_card_label").style['display'] = 'block';
-                                                    } else{
-                                                        document.getElementById("id_amount").placeholder = "Unit per 'K'";
-
-                                                        
-                                                        document.getElementById("loan_select_card").style['display'] = 'none';
-                                                        document.getElementById("loan_select_card_label").style['display'] = 'none';
-
-
-                                                        document.getElementById("loan_character_payment").style['display'] = 'block';
-                                                        document.getElementById("loan_character_payment_label").style['display'] = 'block';
-
-                                                    }
-                                                  });
-                                            </script>
 
 
                                             {% else %}
@@ -1720,6 +1527,8 @@
 
 
 
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.2/jquery.min.js" integrity="sha512-tWHlutFnuG0C6nQRlpvrEhE4QpkG1nn2MOUMWmUeRePl4e3Aki0VB6W1v3oLjFtd0hVOtRQ9PHpSfN6u6/QXkQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
 
             <!-- Payment request modal -->
             <div class="modal fade" id="paymentRequestModal" aria-hidden="true" aria-labelledby="paymentRequestModalLabel" tabindex="-1">
@@ -1761,110 +1570,7 @@
 
 
 
-                <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.2/jquery.min.js" integrity="sha512-tWHlutFnuG0C6nQRlpvrEhE4QpkG1nn2MOUMWmUeRePl4e3Aki0VB6W1v3oLjFtd0hVOtRQ9PHpSfN6u6/QXkQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-                <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
-                <script>
-                    let fa = 0, da = 0, a_ir = 0;
-
-                    function pay_request(){
-                        payment_method = document.getElementById('payment-request-type').value;
-                        console.log(payment_method);
-                        var payment_amount = document.getElementById('asking_money_amount').value;
-                        
-                        if (isNaN(payment_amount)){
-                            payment_amount = 0;
-                        }else{
-                            payment_amount = parseInt(payment_amount * 1000);
-                        }
-
-                        deducated_amount = document.getElementById('deducated_amount');
-                        finall_amount = document.getElementById('finall_amount');
-    
-                        let wage = 0;
-                        
-                        
-                        {% if transaction_wage %}
-                        wage = parseInt("{{transaction_wage}}");
-                        {% else %}
-                        wage = 0;
-                        {% endif %}
-
-
-                        if (payment_method == 'CUT'){
-                            if (wage != 0){
-                                da = (payment_amount * wage) / 100 ;
-                                fa = payment_amount - da;
-                                fa = fa / 1000;
-                            }
-                        } else if (payment_method == 'IR'){
-                            if (wage != 0){
-                                da = (payment_amount * wage) / 100 ;
-                                fa = payment_amount - da;
-                                fa = fa / 1000;
-                                {% if cut_per_ir %}
-                                    a_ir = (fa * {{cut_per_ir.amount}});
-                                    document.getElementById('rp_amountInIr').innerText = "Amount in (IR): " + a_ir;
-                                {% else %}
-                                    document.getElementById('rp_amountInIr').innerText = "Amount in Cut(IR amount not define): " + fa;
-
-                                {% endif %}
-                            }
-                        }
-    
-    
-                        if ( (isNaN(da)) || (isNaN(fa)) ){
-                            da = 0;
-                            fa = payment_amount;
-                        }
-
-                        deducated_amount.innerText = "Deducated amount: " + da;
-                        finall_amount.innerText = "Final amount: " + fa + " K";
-    
-                    }
-
-                $('#final_payment_request_form').on('submit', function() {
-
-                    payment_method = document.getElementById('payment-request-type').value;
-
-
-                    var percentage = 0;
-
-                    {% if transaction_wage %}
-                    percentage = parseInt("{{transaction_wage.id}}");
-                    {% endif %}
-
-                    if (payment_method == 'CUT'){
-                        var alt_id = document.getElementById("select-alt").value;
-
-                        if (alt_id == "0"){
-                            alert("You must choose an alt for payment");
-                            return false;
-                        } 
-
-                        document.getElementById("final_payment_request_alt").value = alt_id ;
-                        document.getElementById("final_payment_request_amount").value = fa ;
-                        document.getElementById("final_payment_request_method").value = payment_method;
-                        document.getElementById("percentage").value = percentage;
-                        
-                    } else if (payment_method == 'IR'){
-
-                        var card_id = document.getElementById("select-card").value;
-                        if (card_id == "0"){
-                            alert("You must choose a bank card for payment");
-                            return false;
-                        } 
-
-                        document.getElementById("final_select_card").value = card_id ;
-                        document.getElementById("final_payment_request_amount").value = fa ;
-                        document.getElementById("final_payment_request_method").value = payment_method;
-
-                        
-                        document.getElementById("percentage").value = percentage;
-                    }
-                    return true;
-                });
-                    
-                </script>
+              
             </div>
 
 
@@ -1903,53 +1609,6 @@
 
                 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.2/jquery.min.js" integrity="sha512-tWHlutFnuG0C6nQRlpvrEhE4QpkG1nn2MOUMWmUeRePl4e3Aki0VB6W1v3oLjFtd0hVOtRQ9PHpSfN6u6/QXkQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
                 <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
-                <script>
-
-                    function get_string(){
-                        var cb = document.getElementsByClassName("is_paid_status");
-                        var string = "";
-                        var is_checked = false;
-                        
-                        for (let item of cb ){
-                            if (item.checked == true){
-                                is_checked = true;
-                                let id = item.getAttribute('id');
-                                id = id.split('_')[2];
-                                var cp_string = document.getElementById("cp_string_" + id);
-                                var len_string = cp_string.innerText.length;
-                                if (len_string > 0){
-                                    string += cp_string.innerText + ",\n";
-                                }
-                            }
-                        }
-
-                        if (is_checked == true ){
-                            document.getElementById("string").innerText = string;
-                        }else{
-                            document.getElementById("string").innerText = "You have not selected an item";
-                        }
-
-
-                    }
-
-                    function copyDivToClipboard(){
-                        var range = document.createRange();
-                        range.selectNode(document.getElementById("string"));
-                        window.getSelection().removeAllRanges(); // clear current selection
-                        window.getSelection().addRange(range); // to select text
-                        document.execCommand("copy");
-                        window.getSelection().removeAllRanges();// to deselect
-
-                                                // Get the snackbar DIV
-                        var x = document.getElementById("snackbar");
-
-                        // Add the "show" class to DIV
-                        x.className = "show";
-
-                        // After 3 seconds, remove the show class from DIV
-                        setTimeout(function(){ x.className = x.className.replace("show", ""); }, 3000);
-                    }
-                </script>
             </div>
 
 
@@ -2085,6 +1744,382 @@
                 </div>
               </div>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+              <script>
+                pay_chars = document.getElementsByClassName("payment_character");
+
+                for (item of pay_chars){
+                    let id = item.getAttribute('id');
+                    id = id.split('_')[2];
+
+                    pay_select = document.getElementById('payment_character_' + id);
+                    {% for match in matches.active_cycle %}
+                        if ( "{{match.id}}" == id){
+                            {% if match.payment_character %}
+                                pay_select.value = "{{match.payment_character.id}}";
+                            {% else %}
+                                document.getElementById("pay_char_help_text_" + id).innerText = "* You have not selected a character to pay";
+                            {% endif %}
+                        }
+                    {% endfor %}
+                }
+            </script>
+
+
+            <script>
+                let fields = document.getElementsByClassName('attendance_total_pot');
+                let value;
+
+                for (field of fields){
+                    value = field.innerText;
+                    value = value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                    field.innerText = value;
+                }
+            </script>
+
+
+
+
+            <script>
+                document.getElementById('cycle_payments_filter').addEventListener('change', function() {
+                    {% if cycle %}
+                        var cycle_id = this.value;
+                        {% for cc in cycle %}
+                            if ("{{cc.id}}" == cycle_id){
+                                let cc_unpaid_parent = document.getElementById("cy_unpaid_parent");
+                                cc_unpaid_parent.innerHTML = "";
+                                {% if cycle_unpaid %}
+
+                                    {% for cp in cycle_unpaid %}
+                                        {% if cc.id == cp.cycle.id %}
+                                            var tr_tag = document.createElement("tr");
+                                            tr_tag.innerHTML = `
+                                            <td class="bg-transparent color-white-important"><a href="#" class="pink-link">{% if cp.detail.player %}{{cp.detail.player}}{% else %}-{% endif %}</a></td>
+                                            <td class="bg-transparent color-white-important" id="cp_string_{{cp.id}}">{{cp.string}}</td>
+                                            {% if cp.paid_date %}<td class="bg-transparent color-white-important">{{cp.paid_date|date:"Y-m-d"}}</td>{% endif %}
+                                            <td class="bg-transparent color-white-important">{{cp.detail.cut}}</td>
+                                            <td class="bg-transparent color-white-important attendance_total_pot">{% if cp.detail.payment_character %} {{cp.detail.payment_character}} {% elif cp.detail.alt %} {{cp.detail.alt}} {% endif %} </td>
+                                            <td class="bg-transparent color-white-important">
+                                                <div class="form-check">
+                                                    <input class="form-check-input padding-5 is_paid_status" type="checkbox" name="{{cp.id}}" id="paid_status_{{cp.id}}" {% if cp.is_paid %}checked{% endif %}>
+                                                </div>
+                                            </td>
+                                            `;
+
+                                            cc_unpaid_parent.appendChild(tr_tag);
+                                        {% endif %}
+                                    {% endfor %}
+
+                                {% endif %}
+                            }
+                        {% endfor %}
+                    {% endif %}
+                  });
+            </script>
+
+
+            <script>
+                var checkboxes = document.getElementsByClassName("booster-selected-checkbox");
+                var invitebtn = document.getElementById('inviteSellectedUserBtn');
+                invitebtn.style.display = 'none';
+                for (checkbox of checkboxes){
+                    checkbox.addEventListener('change', function() {
+                        var flag = false;
+                        if (this.checked) {
+                            var elements = document.getElementsByClassName("price-listener");
+                            invitebtn.style.display = 'flex';
+                        }else{
+                            for (checkbox of checkboxes){
+                                if (checkbox.checked){
+                                    flag = true;
+                                    break;
+                                }
+                            }
+                            if (flag == false){
+                                invitebtn.style.display = 'none';
+                            }
+                        }
+                    });
+                }                                                                        
+            </script>
+
+
+
+            <script>
+                function payment_request_method() {
+                    method = document.getElementById("payment-request-type").value;
+                    if (method == 'IR'){
+                        document.getElementById('select-alt').style.display = 'none';
+                        document.getElementById('select-card').style.display = 'block';
+                    } else if (method == 'CUT'){
+                        document.getElementById('select-alt').style.display = 'block';
+                        document.getElementById('select-card').style.display = 'none';
+                    }
+                }
+            </script>
+
+
+            <script>
+                var checkbox = document.getElementById("currenciesSwitch");
+                var checkbox2 = document.getElementById("currenciesSwitch2");
+
+                checkbox.addEventListener('change', function() {
+                if (this.checked) {
+                    var elements = document.getElementsByClassName("price-listener");
+                    for (element of elements){
+                        var before = element.innerText.split(" ");
+                        element.innerText = before[0]{% if cut_per_ir %} * {{cut_per_ir}}{% endif %};
+                        if (element.innerText != "0" ){
+                            {% if cut_per_ir %}
+                                element.innerText += " T";
+                            {% else %}
+                                element.innerText += ' K';
+                            {% endif %}
+                        }
+                    }
+                } else {
+                    var elements = document.getElementsByClassName("price-listener");
+                    for (element of elements){
+                        var before = element.innerText.split(" ");
+                        element.innerText = before[0]{% if cut_per_ir %} / {{cut_per_ir}}{% endif %};
+                        if (element.innerText != "0"){
+                            element.innerText += " K"
+                        }
+                    }
+                }
+                });
+
+
+                checkbox2.addEventListener('change', function() {
+                    if (this.checked) {
+                        var elements = document.getElementsByClassName("price-listener-2");
+                        for (element of elements){
+                            var before = element.innerText.split(" ");
+                            element.innerText = before[0]{% if cut_per_ir %} * {{cut_per_ir}}{% endif %};
+                            if (element.innerText != "0" ){
+                                {% if cut_per_ir %}
+                                    element.innerText += " T";
+                                {% else %}
+                                    element.innerText += ' K';
+                                {% endif %}
+                            }
+                        }
+                    } else {
+                        var elements = document.getElementsByClassName("price-listener-2");
+                        for (element of elements){
+                            var before = element.innerText.split(" ");
+                            element.innerText = before[0]{% if cut_per_ir %} / {{cut_per_ir}}{% endif %};
+                            if (element.innerText != "0"){
+                                element.innerText += " K"
+                            }
+                        }
+                    }
+                    });
+            </script>
+            
+
+
+            <script>
+                document.getElementById('loan_method').addEventListener('change', function() {
+                    if (this.value == 1){
+                        document.getElementById("id_amount").placeholder = "Enter amount in 'Tomans(IR)'";
+
+                        document.getElementById("loan_character_payment").style['display'] = 'none';
+                        document.getElementById("loan_character_payment_label").style['display'] = 'none';
+
+                        document.getElementById("loan_select_card").style['display'] = 'block';
+                        document.getElementById("loan_select_card_label").style['display'] = 'block';
+                    } else{
+                        document.getElementById("id_amount").placeholder = "Unit per 'K'";
+
+                        
+                        document.getElementById("loan_select_card").style['display'] = 'none';
+                        document.getElementById("loan_select_card_label").style['display'] = 'none';
+
+
+                        document.getElementById("loan_character_payment").style['display'] = 'block';
+                        document.getElementById("loan_character_payment_label").style['display'] = 'block';
+
+                    }
+                  });
+            </script>
+
+
+            <script>
+                let fa = 0, da = 0, a_ir = 0;
+
+                function pay_request(){
+                    payment_method = document.getElementById('payment-request-type').value;
+                    console.log(payment_method);
+                    var payment_amount = document.getElementById('asking_money_amount').value;
+                    
+                    if (isNaN(payment_amount)){
+                        payment_amount = 0;
+                    }else{
+                        payment_amount = parseInt(payment_amount * 1000);
+                    }
+
+                    deducated_amount = document.getElementById('deducated_amount');
+                    finall_amount = document.getElementById('finall_amount');
+
+                    let wage = 0;
+                    
+                    
+                    {% if transaction_wage %}
+                    wage = parseInt("{{transaction_wage}}");
+                    {% else %}
+                    wage = 0;
+                    {% endif %}
+
+
+                    if (payment_method == 'CUT'){
+                        if (wage != 0){
+                            da = (payment_amount * wage) / 100 ;
+                            fa = payment_amount - da;
+                            fa = fa / 1000;
+                        }
+                    } else if (payment_method == 'IR'){
+                        if (wage != 0){
+                            da = (payment_amount * wage) / 100 ;
+                            fa = payment_amount - da;
+                            fa = fa / 1000;
+                            {% if cut_per_ir %}
+                                a_ir = (fa * {{cut_per_ir.amount}});
+                                document.getElementById('rp_amountInIr').innerText = "Amount in (IR): " + a_ir;
+                            {% else %}
+                                document.getElementById('rp_amountInIr').innerText = "Amount in Cut(IR amount not define): " + fa;
+
+                            {% endif %}
+                        }
+                    }
+
+
+                    if ( (isNaN(da)) || (isNaN(fa)) ){
+                        da = 0;
+                        fa = payment_amount;
+                    }
+
+                    deducated_amount.innerText = "Deducated amount: " + da;
+                    finall_amount.innerText = "Final amount: " + fa + " K";
+
+                }
+
+                $('#final_payment_request_form').on('submit', function() {
+
+                    payment_method = document.getElementById('payment-request-type').value;
+
+
+                    var percentage = 0;
+
+                    {% if transaction_wage %}
+                    percentage = parseInt("{{transaction_wage.id}}");
+                    {% endif %}
+
+                    if (payment_method == 'CUT'){
+                        var alt_id = document.getElementById("select-alt").value;
+
+                        if (alt_id == "0"){
+                            alert("You must choose an alt for payment");
+                            return false;
+                        } 
+
+                        document.getElementById("final_payment_request_alt").value = alt_id ;
+                        document.getElementById("final_payment_request_amount").value = fa ;
+                        document.getElementById("final_payment_request_method").value = payment_method;
+                        document.getElementById("percentage").value = percentage;
+                        
+                    } else if (payment_method == 'IR'){
+
+                        var card_id = document.getElementById("select-card").value;
+                        if (card_id == "0"){
+                            alert("You must choose a bank card for payment");
+                            return false;
+                        } 
+
+                        document.getElementById("final_select_card").value = card_id ;
+                        document.getElementById("final_payment_request_amount").value = fa ;
+                        document.getElementById("final_payment_request_method").value = payment_method;
+
+                        
+                        document.getElementById("percentage").value = percentage;
+                    }
+                    return true;
+                });
+                
+            </script>
+
+
+            <script>
+
+                function get_string(){
+                    var cb = document.getElementsByClassName("is_paid_status");
+                    var string = "";
+                    var is_checked = false;
+                    
+                    for (let item of cb ){
+                        if (item.checked == true){
+                            is_checked = true;
+                            let id = item.getAttribute('id');
+                            id = id.split('_')[2];
+                            var cp_string = document.getElementById("cp_string_" + id);
+                            var len_string = cp_string.innerText.length;
+                            if (len_string > 0){
+                                string += cp_string.innerText + ",\n";
+                            }
+                        }
+                    }
+
+                    if (is_checked == true ){
+                        document.getElementById("string").innerText = string;
+                    }else{
+                        document.getElementById("string").innerText = "You have not selected an item";
+                    }
+
+
+                }
+
+                function copyDivToClipboard(){
+                    var range = document.createRange();
+                    range.selectNode(document.getElementById("string"));
+                    window.getSelection().removeAllRanges(); // clear current selection
+                    window.getSelection().addRange(range); // to select text
+                    document.execCommand("copy");
+                    window.getSelection().removeAllRanges();// to deselect
+
+                                            // Get the snackbar DIV
+                    var x = document.getElementById("snackbar");
+
+                    // Add the "show" class to DIV
+                    x.className = "show";
+
+                    // After 3 seconds, remove the show class from DIV
+                    setTimeout(function(){ x.className = x.className.replace("show", ""); }, 3000);
+                }
+            </script>
+
+
+
               <script>
                 //change unit amount to thousand
                 var change_unit = document.getElementsByClassName("unit_per_thousand");
@@ -2148,5 +2183,7 @@
                     }
                 });
               </script>
+
+
 
         </div>
