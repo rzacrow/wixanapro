@@ -13,70 +13,95 @@ import json
 
 class CyclePayment(View):
     def post(self, request):
-        if request.user.is_authenticated:
-            if request.user.is_superuser:
-                wallet_fail = False
-                wallet_fail_list = list()
+        try:
+            if request.user.is_authenticated:
+                if request.user.is_superuser:
+                    print(request.POST)
+                    try:
+                        is_update = request.POST['update']
+                        wallet_fail = False
+                        wallet_fail_list = list()
 
-                insufficient_balance = False
-                insufficient_balance_list = list()
+                        insufficient_balance = False
+                        insufficient_balance_list = list()
 
-                for item in request.POST.keys():
-                    if item.isnumeric():
-                        try:
-                            obj = Payment.objects.get(id=item)
+                        for item in request.POST.keys():
+                            if item.isnumeric():
+                                try:
+                                    obj = Payment.objects.get(id=item)
 
-                            if obj.detail.player:
-                                wallet = Wallet.objects.get(player=obj.detail.player)
-                                if wallet.amount < int(obj.detail.cut):
-                                    insufficient_balance = True
-                                    insufficient_balance_list.append(obj.detail.player.username)
-                                    obj.is_paid = False
-                                    obj.save()
-                                else:
-                                    wallet.amount -= int(obj.detail.cut)
-                                    wallet.save()
-                                    obj.is_paid = True
-                                    obj.paid_date = datetime.datetime.now()
-                                    obj.save()
+                                    if obj.detail.player:
+                                        wallet = Wallet.objects.get(player=obj.detail.player)
+                                        if wallet.amount < int(obj.detail.cut):
+                                            insufficient_balance = True
+                                            insufficient_balance_list.append(obj.detail.player.username)
+                                            obj.is_paid = False
+                                            obj.save()
+                                        else:
+                                            wallet.amount -= int(obj.detail.cut)
+                                            wallet.save()
+                                            obj.is_paid = True
+                                            obj.paid_date = datetime.datetime.now()
+                                            obj.save()
 
-                                    character = None
+                                            character = None
 
-                                    if obj.detail.payment_character:
-                                        character = obj.detail.payment_character
-                                    elif obj.detail.alt:
-                                        character = obj.detail.alt
+                                            if obj.detail.payment_character:
+                                                character = obj.detail.payment_character
+                                            elif obj.detail.alt:
+                                                character = obj.detail.alt
 
 
-                                    Transaction.objects.create(requester=obj.detail.player, status='PAID', paid_date=datetime.datetime.now(), amount=obj.detail.cut, currency='CUT', alt=character, caption="---Cycle---")
-                            else:
-                                wallet_fail = True
-                                wallet_fail_list.append(obj.detail.alt)
-                                obj.paid_date = datetime.datetime.now()
-                                obj.is_paid = True
-                                obj.save()
-                        except:
-                            pass
+                                            Transaction.objects.create(requester=obj.detail.player, status='PAID', paid_date=datetime.datetime.now(), amount=obj.detail.cut, currency='CUT', alt=character, caption="---Cycle---")
+                                    else:
+                                        wallet_fail = True
+                                        wallet_fail_list.append(obj.detail.alt)
+                                        obj.paid_date = datetime.datetime.now()
+                                        obj.is_paid = True
+                                        obj.save()
+                                except:
+                                    pass
 
+                                    
                             
+                        if wallet_fail:
+                            messages.add_message(request, messages.WARNING, f"The wallets of {wallet_fail_list} users were not found, But their payment status was set as 'paid'")
+
+                        if insufficient_balance:
+                            messages.add_message(request, messages.WARNING, f"The account balance of the following users is less than the amount paid, {insufficient_balance_list}, and their payment status was set as 'Unpaid'")
+
+                        messages.add_message(request, messages.SUCCESS, "Changes saved!")
+                        return redirect(reverse('dashboard') + "?tab=cycle-payments")
                     
-                if wallet_fail:
-                    messages.add_message(request, messages.WARNING, f"The wallets of {wallet_fail_list} users were not found, But their payment status was set as 'paid'")
 
-                if insufficient_balance:
-                    messages.add_message(request, messages.WARNING, f"The account balance of the following users is less than the amount paid, {insufficient_balance_list}, and their payment status was set as 'Unpaid'")
+                    except:
+                        try:
+                            is_delete = request.POST['delete']
+                        except:
+                            messages.add_message(request, messages.ERROR, "Something went wrong!")
+                            return redirect(reverse('dashboard') + "?tab=cycle-payments")
+                        else:
+                            counter = 0
+                            for item in request.POST.keys():
+                                if item.isnumeric():
+                                    #try:
+                                        Payment.objects.get(id=item).delete()
+                                        counter += 1
+                                    #except:
+                                    #    pass
 
-                messages.add_message(request, messages.SUCCESS, "Changes saved!")
-                return redirect(reverse('dashboard') + "?tab=cycle-payments")
-                    
-
-            
+                            messages.add_message(request, messages.SUCCESS, f"{counter} cp were deleted!")
+                            return redirect(reverse('dashboard') + "?tab=cycle-payments")
+                        
 
 
 
 
-        messages.add_message(request, messages.WARNING, 'You are not allowed to do this!')
-        return redirect('dashboard')
+            messages.add_message(request, messages.WARNING, 'You are not allowed to do this!')
+            return redirect('dashboard')
+        except:
+            messages.add_message(request, messages.ERROR, 'Something went wrong!')
+            return redirect(reverse('dashboard') + "?tab=cycle-payments")            
 
 
 

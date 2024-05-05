@@ -5,7 +5,7 @@
 
                     <!-- Side bar -->
                     <div class="nav flex-column nav-pills me-3 nav-l-style" id="v-pills-tab" role="tablist" aria-orientation="vertical">
-                        <button class="nav-link color-red">
+                        <button class="nav-link small_size_on_mobile color-red">
                             <div class="flex-row center-icon-text">
                                 <img src="{% if user.avatar_hash %}../../{{user.avatar_hash}}{% elif user.avatar %}{{user.avatar.url}}{% else %}{% static '../media/profile/profile-icon.png' %}{%endif %}" class="image-profile shadow-lg"> &nbsp;
                                 <h6>{% if user.nick_name %}{{user.nick_name}}{% else %}{{user.username}}{% endif %}</h6>
@@ -13,33 +13,33 @@
                         </button>
 
 
-                        <button class="nav-link center-icon-text color-white none-hover {% if not tab %}active{% endif %}" id="pills-users-tab" data-bs-toggle="pill" data-bs-target="#pills-users" type="button" role="tab" aria-controls="pills-users" aria-selected="true">
+                        <button class="nav-link small_size_on_mobile center-icon-text color-white none-hover {% if not tab %}active{% endif %}" id="pills-users-tab" data-bs-toggle="pill" data-bs-target="#pills-users" type="button" role="tab" aria-controls="pills-users" aria-selected="true">
                             <span class="material-symbols-outlined">
                                 account_circle
-                            </span>&nbsp;Accounts
+                            </span>&nbsp;<span class="delete_on_mobile">Accounts</span>
                         </button>
 
                         {% if not is_user %}
 
 
                         {% if has_perm_view_attendance_admin %}
-                        <button class="nav-link center-icon-text color-white none-hover {% if tab == 'new-attendance'%}active{% endif %}" id="pills-new-attendance-tab" data-bs-toggle="pill" data-bs-target="#pills-new-attendance" type="button" role="tab" aria-controls="pills-new-attendance" aria-selected="false" {% if is_user %}disabled{% endif %}>
+                        <button class="nav-link small_size_on_mobile center-icon-text color-white none-hover {% if tab == 'new-attendance'%}active{% endif %}" id="pills-new-attendance-tab" data-bs-toggle="pill" data-bs-target="#pills-new-attendance" type="button" role="tab" aria-controls="pills-new-attendance" aria-selected="false" {% if is_user %}disabled{% endif %}>
                             <span class="material-symbols-outlined">
                                 library_add
-                                </span>&nbsp;New Attendance
+                                </span>&nbsp;<span class="delete_on_mobile">New Attendance</span>
                         </button>
 
-                        <button class="nav-link center-icon-text color-white none-hover {% if tab == 'cycle-payments'%}active{% endif %}" id="pills-cycle-payments-tab" data-bs-toggle="pill" data-bs-target="#pills-cycle-payments" type="button" role="tab" aria-controls="pills-new-attendance" aria-selected="false" {% if is_user %}disabled{% endif %}>
+                        <button class="nav-link small_size_on_mobile center-icon-text color-white none-hover {% if tab == 'cycle-payments'%}active{% endif %}" id="pills-cycle-payments-tab" data-bs-toggle="pill" data-bs-target="#pills-cycle-payments" type="button" role="tab" aria-controls="pills-new-attendance" aria-selected="false" {% if is_user %}disabled{% endif %}>
                             <span class="material-symbols-outlined">
                                 point_of_sale
-                                </span>&nbsp;Cycle payments
+                                </span>&nbsp;<span class="delete_on_mobile">Cycle payments</span>
                         </button>
                         {% endif %}
 
-                        <button class="nav-link center-icon-text color-white none-hover position-relative {% if tab == 'team'%}active{% endif %}" id="v-pills-teams-tab" data-bs-toggle="pill" data-bs-target="#v-pills-teams" type="button" role="tab" aria-controls="v-pills-teams" aria-selected="false" {% if is_user %}disabled{% endif %}>
+                        <button class="nav-link small_size_on_mobile center-icon-text color-white none-hover position-relative {% if tab == 'team'%}active{% endif %}" id="v-pills-teams-tab" data-bs-toggle="pill" data-bs-target="#v-pills-teams" type="button" role="tab" aria-controls="v-pills-teams" aria-selected="false" {% if is_user %}disabled{% endif %}>
                             <span class="material-symbols-outlined">
                                 groups
-                            </span>&nbsp;Team
+                            </span>&nbsp;<span class="delete_on_mobile">Team</span>
                             {% if team.is_leader_team %}
                                 {% if team.request_count%}
                                     <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
@@ -50,28 +50,28 @@
                             {% endif %}
                         </button>
 
-                        <button class="nav-link center-icon-text color-white none-hover {% if tab == 'attendance'%}active{% endif %}" id="pills-recent-match-tab" data-bs-toggle="pill" data-bs-target="#pills-recent-match" type="button" role="tab" aria-controls="pills-recent-match" aria-selected="false" {% if is_user %}disabled{% endif %}>
+                        <button class="nav-link small_size_on_mobile center-icon-text color-white none-hover {% if tab == 'attendance'%}active{% endif %}" id="pills-recent-match-tab" data-bs-toggle="pill" data-bs-target="#pills-recent-match" type="button" role="tab" aria-controls="pills-recent-match" aria-selected="false" {% if is_user %}disabled{% endif %}>
                             <span class="material-symbols-outlined">
                                 joystick
-                                </span>&nbsp;Attendance
+                                </span>&nbsp;<span class="delete_on_mobile">Attendance</span>
                         </button>
 
-                        <button class="nav-link center-icon-text color-white none-hover {% if tab == 'wallet'%}active{% endif %}" id="pills-wallet-tab" data-bs-toggle="pill" data-bs-target="#pills-wallet" type="button" role="tab" aria-controls="pills-wallet" aria-selected="false" {% if is_user %}disabled{% endif %}>
+                        <button class="nav-link small_size_on_mobile center-icon-text color-white none-hover {% if tab == 'wallet'%}active{% endif %}" id="pills-wallet-tab" data-bs-toggle="pill" data-bs-target="#pills-wallet" type="button" role="tab" aria-controls="pills-wallet" aria-selected="false" {% if is_user %}disabled{% endif %}>
                             <span class="material-symbols-outlined">
                                 account_balance_wallet
-                                </span>&nbsp;Wallet
+                                </span>&nbsp;<span class="delete_on_mobile">Wallet</span>
                         </button>
 
-                        <button class="nav-link center-icon-text color-white none-hover {% if tab == 'loan'%}active{% endif %}" id="pills-loan-tab" data-bs-toggle="pill" data-bs-target="#pills-loan" type="button" role="tab" aria-controls="pills-loan" aria-selected="false" {% if is_user %}disabled{% endif %}>
+                        <button class="nav-link small_size_on_mobile center-icon-text color-white none-hover {% if tab == 'loan'%}active{% endif %}" id="pills-loan-tab" data-bs-toggle="pill" data-bs-target="#pills-loan" type="button" role="tab" aria-controls="pills-loan" aria-selected="false" {% if is_user %}disabled{% endif %}>
                             <span class="material-symbols-outlined">
                                 account_balance
-                            </span>&nbsp;Loan
+                            </span>&nbsp;<span class="delete_on_mobile">Loan</span>
                         </button>
                         {% endif %}
-                        <button class="nav-link center-icon-text color-white none-hover position-relative {% if tab == 'notifications' %}active{% endif %}" id="pills-notifications-tab" data-bs-toggle="pill" data-bs-target="#pills-notifications" type="button" role="tab" aria-controls="pills-notifications" aria-selected="false">
+                        <button class="nav-link small_size_on_mobile center-icon-text color-white none-hover position-relative {% if tab == 'notifications' %}active{% endif %}" id="pills-notifications-tab" data-bs-toggle="pill" data-bs-target="#pills-notifications" type="button" role="tab" aria-controls="pills-notifications" aria-selected="false">
                             <span class="material-symbols-outlined">
                                 notifications_active
-                            </span>&nbsp;Notifications
+                            </span>&nbsp;<span class="delete_on_mobile">Notifications</span>
                             {% if unseen_notif_count %}
                             <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
                                 {{unseen_notif_count}}
@@ -81,19 +81,19 @@
                         </button>
 
 
-                        <button class="nav-link center-icon-text color-white none-hover position-relative {% if tab == 'ticket' %}active{% endif %}" id="pills-ticket-tab" data-bs-toggle="pill" data-bs-target="#pills-ticket" type="button" role="tab" aria-controls="pills-ticket" aria-selected="false">
+                        <button class="nav-link small_size_on_mobile center-icon-text color-white none-hover position-relative {% if tab == 'ticket' %}active{% endif %}" id="pills-ticket-tab" data-bs-toggle="pill" data-bs-target="#pills-ticket" type="button" role="tab" aria-controls="pills-ticket" aria-selected="false">
                             <span class="material-symbols-outlined">
                                 mark_as_unread
-                                </span>&nbsp;Ticket
+                                </span>&nbsp;<span class="delete_on_mobile">Ticket</span>
                         </button>
 
 
 
 
                         <a href="{%url 'logout' %}">
-                        <button class="nav-link center-icon-text pink-hover" id="v-pills-settings-tab" data-bs-toggle="pill" data-bs-target="#v-pills-settings" type="button" role="tab" aria-controls="v-pills-settings" aria-selected="false">
+                        <button class="nav-link small_size_on_mobile center-icon-text pink-hover" id="v-pills-settings-tab" data-bs-toggle="pill" data-bs-target="#v-pills-settings" type="button" role="tab" aria-controls="v-pills-settings" aria-selected="false">
                             <span class="material-symbols-outlined">
-                                logout</span>&nbsp;Exit
+                                logout</span>&nbsp;<span class="delete_on_mobile">Exit</span>
                         </button>
                         </a>
                     </div>
@@ -261,7 +261,7 @@
                                                             <th class="bg-transparent color-white-important">Note</th>
                                                             <th class="bg-transparent color-white-important">Total pot</th>
                                                             <th class="bg-transparent color-white-important">Run type</th>
-                                                            <th class="bg-transparent color-white-important"><button type="submit" class="color-white-important center-icon-text center-r-c btn btn-danger delete_realm"><span class="material-symbols-outlined">delete</span>&nbsp;Delete selected</button></th>
+                                                            <th class="bg-transparent color-white-important"><button type="submit" class="color-white-important center-icon-text center-r-c btn btn-danger delete_realm"><span class="material-symbols-outlined">delete</span></button></th>
                                                         </thead>
                                                         <tbody>
                                                             
@@ -273,7 +273,7 @@
                                                                         <td class="bg-transparent color-white-important attendance_total_pot">{{attendance.total_pot}}</td>
                                                                         <td class="bg-transparent color-white-important attendance_total_pot">{{attendance.run_type}}</td>
 
-                                                                        <td class="bg-transparent color-white-important text-center"><input type="checkbox" class="form-check-input padding-5" name="{{attendance.id}}"></td>
+                                                                        <td class="bg-transparent color-white-important "><input type="checkbox" class="form-check-input padding-5" name="{{attendance.id}}"></td>
                                                                     </tr>
                                                             {% endfor %}
                                                         </tbody>   
@@ -330,9 +330,11 @@
                                         <form method="post" action="{% url 'cycle_payment' %}">
                                             {% csrf_token %}
                                             <div class="row">
-                                                <div class="col-lg-6"></div>
-                                                <div class="col-lg-3 col-sm-4 col flex-end"><button type="button" class="btn btn-outline-porpule max-height-37 color-white-important" id="btn_get_string" data-bs-toggle="modal" data-bs-target="#getStringModal" onclick="get_string();"><img src="{% static 'accounts/images/letter.png' %}" width="30"></button></div>
-                                                <div class="col-lg-3 col-sm-8 col flex-end"><input type="submit" value="Submit changes" class="btn btn-porpule color-white-important"></div>
+                                                <div class="col-lg-1 col-md-1 col flex-start"><button type="submit" name="delete" class="max-height-37 color-white-important btn btn-danger delete_realm"><span class="material-symbols-outlined">delete</span></button></div>
+                                                <div class="col-lg-1 col-md-1 col flex-start"><button type="button" class="btn btn-outline-porpule max-height-37 color-white-important" id="btn_get_string" data-bs-toggle="modal" data-bs-target="#getStringModal" onclick="get_string();"><img src="{% static 'accounts/images/letter.png' %}" width="30"></button></div>
+                                                <div class="col-lg-7 col"></div>
+
+                                                <div class="col-lg-3 col-md-9 col flex-end"><input type="submit" name="update" value="Submit changes" class="btn btn-porpule color-white-important"></div>
                                             </div>
                                             <div class="table-responsive">
                                                 <table class="table">
@@ -1830,8 +1832,8 @@
                         a_t_c_c_amount += {{match.cut}} ;
                     {% endfor %}
 
-                    a_t_c_c_amount = a_t_c_amount / 1000;
-                    a_t_c_c.innerText = "Total cut: " + a_t_c_amount + " K";
+                    a_t_c_c_amount = a_t_c_c_amount / 1000;
+                    a_t_c_c.innerText = "Total cut: " + a_t_c_c_amount + " K";
                 {% endif %}
 
             </script>

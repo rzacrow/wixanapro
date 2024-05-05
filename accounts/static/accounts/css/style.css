@@ -572,10 +572,15 @@ select{
     .from-top-25-mobile{
         margin-top: 25px;
     }
+    #v-pills-tab{
+        overflow-x: scroll !important; flex-wrap: nowrap !important; max-width: 360px;
+    }
     .padding-25-mobile{
         padding: 25px;
     }
-
+    .delete_on_mobile{
+        display: none;
+    }
     .flex-column-mobile{
         display: flex; flex-direction: column !important;
     }
@@ -759,10 +764,10 @@ select{
         position: absolute !important;
     }
     .column-mobile{
-        display: flex; flex-direction: column; justify-content: center;
+        display: flex; flex-direction: column; justify-content: center; 
     }
     .column-mobile .nav-pills{
-        flex-direction: row !important; padding: 15px; flex-wrap: wrap !important;
+        flex-direction: row !important; padding: 15px; flex-wrap: wrap;
     }
     .dashboard-detail{
         min-width: auto !important; max-width: auto !important;

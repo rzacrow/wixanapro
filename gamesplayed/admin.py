@@ -219,6 +219,7 @@ class CycleAdmin(ModelAdmin):
                 if obj.status == 'C':
                     messages.add_message(request, messages.WARNING, f'cycle {obj} has already been closed' )
                     continue
+                
                 attendances = Attendance.objects.filter(cycle=obj)
                 if attendances:
                     for at in attendances:
