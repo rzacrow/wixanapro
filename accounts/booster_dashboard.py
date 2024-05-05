@@ -10,7 +10,7 @@ from datetime import timedelta
 import math
 
 def cycle_payments():
-    payments_history = Payment.objects.filter(is_paid=True).order_by('-paid_date')
+    payments_history = Payment.objects.filter(is_paid=True).order_by('-paid_date')[0:20]
 
     return payments_history
 
@@ -168,6 +168,9 @@ def unseen_notif_badge(pk):
 def attendance_admin():
     attendances = Attendance.objects.filter().order_by('-date_time')
     return attendances
+
+
+
 #Get all teams
 def get_teams():
     teams = Team.objects.filter(status='Verified')

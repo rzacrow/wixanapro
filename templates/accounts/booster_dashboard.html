@@ -248,26 +248,37 @@
                                             </p>
                                             <a href="{% url 'create_attendance' %}" class="btn btn-porpule color-white-important">+ New</a>
                                         </div>
+                                        <hr>
 
                                         {% if admin_attendances %}
                                             <div class="table-responsive">
                                                 <table class="table">
-                                                    <thead>
-                                                        <th class="bg-transparent color-white-important">Created</th>
-                                                        <th class="bg-transparent color-white-important">Status</th>
-                                                        <th class="bg-transparent color-white-important">Note</th>
-                                                        <th class="bg-transparent color-white-important">Total pot</th>
-                                                    </thead>
-                                                    <tbody>
-                                                {% for attendance in admin_attendances %}
-                                                        <tr>
-                                                            <td class="bg-transparent color-white-important"><a href="{% url 'view_attendance' attendance.id %}" class="pink-link">{{attendance.date_time|date:"Y-m-d H:i"}}</a></td>
-                                                            <td class="bg-transparent color-white-important">{{attendance.get_status_display}}</td>
-                                                            <td class="bg-transparent color-white-important">{{attendance.note}}</td>
-                                                            <td class="bg-transparent color-white-important attendance_total_pot">{{attendance.total_pot}}</td>
-                                                        </tr>
-                                                {% endfor %}
-                                                    </tbody>                                      
+                                                    <form method="post" action="{% url 'remove_attendance' %}">
+                                                        {% csrf_token %}
+                                                        <thead>
+                                                            <th class="bg-transparent color-white-important">Created</th>
+                                                            <th class="bg-transparent color-white-important">Status</th>
+                                                            <th class="bg-transparent color-white-important">Note</th>
+                                                            <th class="bg-transparent color-white-important">Total pot</th>
+                                                            <th class="bg-transparent color-white-important">Run type</th>
+                                                            <th class="bg-transparent color-white-important"><button type="submit" class="color-white-important center-icon-text center-r-c btn btn-danger delete_realm"><span class="material-symbols-outlined">delete</span>&nbsp;Delete selected</button></th>
+                                                        </thead>
+                                                        <tbody>
+                                                            
+                                                                {% for attendance in admin_attendances %}
+                                                                    <tr>
+                                                                        <td class="bg-transparent color-white-important"><a href="{% url 'view_attendance' attendance.id %}" class="pink-link">{{attendance.date_time|date:"Y-m-d H:i"}}</a></td>
+                                                                        <td class="bg-transparent color-white-important">{{attendance.get_status_display}}</td>
+                                                                        <td class="bg-transparent color-white-important">{{attendance.note}}</td>
+                                                                        <td class="bg-transparent color-white-important attendance_total_pot">{{attendance.total_pot}}</td>
+                                                                        <td class="bg-transparent color-white-important attendance_total_pot">{{attendance.run_type}}</td>
+
+                                                                        <td class="bg-transparent color-white-important text-center"><input type="checkbox" class="form-check-input padding-5" name="{{attendance.id}}"></td>
+                                                                    </tr>
+                                                            {% endfor %}
+                                                        </tbody>   
+                                                    </form>
+                                   
                                                 </table>
                                             </div>
 
@@ -798,11 +809,17 @@
 
                                         <!-- Active cycle -->
                                         <div class="dashboard-detail-item from-top-25">
-                                            <p class="center-icon-text">
-                                                <span class="material-symbols-outlined">
-                                                    stadia_controller
-                                                    </span>&nbsp;Active Cycle
-                                            </p>
+                                            <div class="flex-between">
+                                                <div class="center-icon-text">
+                                                    <span class="material-symbols-outlined">
+                                                        stadia_controller
+                                                        </span>&nbsp;Active Cycle
+                                                </div>
+
+                                                <div id="active_total_cut">
+                                                    
+                                                </div>
+                                            </div>
     
                                             <div class="content padding-15">
                                                 {% if matches.active_cycle %}
@@ -856,11 +873,17 @@
 
                                         <!-- History -->
                                         <div class="dashboard-detail-item from-top-25">
-                                            <p class="center-icon-text">
-                                                <span class="material-symbols-outlined">
-                                                    history
-                                                    </span>&nbsp;History
-                                            </p>
+                                            <div class="flex-between">
+                                                <div class="center-icon-text">
+                                                    <span class="material-symbols-outlined">
+                                                        history
+                                                        </span>&nbsp;History
+                                                </div>
+
+                                                <div id="history_total_cut">
+                                                    
+                                                </div>
+                                            </div>
     
                                             <div class="content padding-15">
                                                 {% if matches.closed_cycle %}
@@ -1530,6 +1553,8 @@
             <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.2/jquery.min.js" integrity="sha512-tWHlutFnuG0C6nQRlpvrEhE4QpkG1nn2MOUMWmUeRePl4e3Aki0VB6W1v3oLjFtd0hVOtRQ9PHpSfN6u6/QXkQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
             <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
 
+
+
             <!-- Payment request modal -->
             <div class="modal fade" id="paymentRequestModal" aria-hidden="true" aria-labelledby="paymentRequestModalLabel" tabindex="-1">
                 <div class="modal-dialog modal-dialog-centered">
@@ -1763,9 +1788,6 @@
 
 
 
-
-
-
               <script>
                 pay_chars = document.getElementsByClassName("payment_character");
 
@@ -1784,6 +1806,34 @@
                         }
                     {% endfor %}
                 }
+
+
+
+                {% if matches.active_cycle %}
+                    let a_t_c = document.getElementById("active_total_cut");
+                    let a_t_c_amount = 0;
+                    {% for match in matches.active_cycle %}
+                        a_t_c_amount += {{match.cut}} ;
+                    {% endfor %}
+
+                    a_t_c_amount = a_t_c_amount / 1000;
+                    a_t_c.innerText = "Total cut: " + a_t_c_amount + " K";
+                {% endif %}
+
+
+
+                
+                {% if matches.closed_cycle %}
+                    let a_t_c_c = document.getElementById("history_total_cut");
+                    let a_t_c_c_amount = 0;
+                    {% for match in matches.active_cycle %}
+                        a_t_c_c_amount += {{match.cut}} ;
+                    {% endfor %}
+
+                    a_t_c_c_amount = a_t_c_amount / 1000;
+                    a_t_c_c.innerText = "Total cut: " + a_t_c_amount + " K";
+                {% endif %}
+
             </script>
 
 
@@ -1842,7 +1892,9 @@
             <script>
                 var checkboxes = document.getElementsByClassName("booster-selected-checkbox");
                 var invitebtn = document.getElementById('inviteSellectedUserBtn');
-                invitebtn.style.display = 'none';
+                if (invitebtn != null){
+                    invitebtn.style.display = 'none';
+                }
                 for (checkbox of checkboxes){
                     checkbox.addEventListener('change', function() {
                         var flag = false;
@@ -1889,7 +1941,9 @@
                     var elements = document.getElementsByClassName("price-listener");
                     for (element of elements){
                         var before = element.innerText.split(" ");
+
                         element.innerText = before[0]{% if cut_per_ir %} * {{cut_per_ir}}{% endif %};
+
                         if (element.innerText != "0" ){
                             {% if cut_per_ir %}
                                 element.innerText += " T";

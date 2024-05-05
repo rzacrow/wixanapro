@@ -622,3 +622,18 @@ class RegisterGhostBooster(View):
                 User.objects.create(username="ghost", email="ghost@ghost.com", password="")
             except:
                 pass
+
+
+
+class RemoveAttendance(View):
+    def post(self, request):
+        if request.user.is_superuser:
+            data = request.POST
+            counter = 0
+            for item in data.keys():
+                if item.isnumeric():
+                    Attendance.objects.get(id=item).delete()
+                    counter += 1
+
+            messages.add_message(request, messages.SUCCESS, f"{counter} attendances were deleted. Note that if they are closed, the deposit amount will not be returned to the user's wallet")
+            return redirect(reverse('dashboard') + '?tab=new-attendance')

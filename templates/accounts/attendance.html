@@ -3,7 +3,6 @@
 
 {% block body %}
 {% load static %}
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 
     <!-- Create Attendance -->
 <div class="back-color-fit">
@@ -16,7 +15,7 @@
                     
             {% if messages %}
             {% for message in messages %}
-                <div class="row rounded-md">
+                <div class="row rounded-md message-alert">
                     <div class="col">
                         <h6 class="font-bold alert alert-{% if message.level_tag == 'error'%}danger{% elif message.level_tag == 'success'%}success{% else %}warning{% endif %}">{{message}}</h6>
                     </div>
@@ -121,100 +120,6 @@
                                 </div>
                             </div>
 
-                            <!-- In multi realm method: show panel for add and remove realm -->
-                            <script>
-                                //realm item counter
-                                let realm_object_counter = 0;
-
-                                //div parent
-                                const parent_realm_section = document.getElementById('parent-realm-detail');
-                                let realm_detail_box = document.getElementById('select-realm-box');
-                                realm_detail_box.style.display = 'flex';
-                                document.getElementById('add-realm').style.display = 'none';
-
-                                //Create realm item
-                                function create_new_realm(){
-                                    
-                                    realm_object_counter ++;
-
-                                    let realm_section = document.createElement('div');
-                                    realm_section.className = 'col-md-6';
-
-                                    let realm_section_row = document.createElement('div');
-                                    realm_section_row.className = 'row';
-
-                                    realm_section_row.innerHTML = `
-                                        <div class="col col-md-6 col-sm-5 realm_box_${realm_object_counter}">
-                                            <div class="">
-                                                <select name="realm_${realm_object_counter}" id="realm_${realm_object_counter}" class="select-custom-style form-select">
-                                                    <option value="0">Realm</option>
-                                                    {% if realms %}
-                                                        {% for realm in realms %}
-                                                        <option value="{{realm.id}}">{{realm.name}}</option>
-                                                        {% endfor %}
-                                                    {% endif %}
-                                                </select>
-                                            </div>
-                                        </div>
-                                
-                                        <div class="col col-sm-4 col-md-4 realm_box_${realm_object_counter}">
-                                            <div class="">
-                                                <input type="number" placeholder="Amount: no separator" name="realm_amount_${realm_object_counter}" id="realm_amount_${realm_object_counter}" class="form-control">
-                                            </div>
-                                        </div> 
-                                    `;
-                                    
-                                    //delete realm button
-                                    const delete_realm_btn = document.createElement('button');
-                                    delete_realm_btn.setAttribute('type', 'button');
-                                    delete_realm_btn.className = "color-white-important center-icon-text center-r-c btn btn-danger delete_realm";
-                                    delete_realm_btn.innerHTML = '<span class="material-symbols-outlined">delete</span>';
-                                    
-                                    delete_realm_btn.addEventListener('click', function(){
-                                        parent_realm_section.removeChild(realm_section);
-                                    });
-
-                                    const delete_realm_btn_box_mb_class = document.createElement('div');
-                                    delete_realm_btn_box_mb_class.className = "mb-3";
-
-                                    const delete_realm_btn_box = document.createElement('div');
-                                    delete_realm_btn_box.className = `col col-sm-3 col-md-2 realm_box_${realm_object_counter}`;
-                                    
-                                    delete_realm_btn_box_mb_class.appendChild(delete_realm_btn);
-                                    delete_realm_btn_box.appendChild(delete_realm_btn_box_mb_class);
-                                    realm_section_row.appendChild(delete_realm_btn_box)
-
-                                    realm_section.appendChild(realm_section_row);
-
-                                    //add to parent div
-                                    parent_realm_section.appendChild(realm_section);
-                                }
-                                
-
-                                create_new_realm();
-
-                                //ever realm method was changed: (realms visibility) 
-                                function roletypechange(){
-                                    let element = document.getElementById('realm-method-select');
-                                    let realm_detail_box = document.getElementById('select-realm-box');
-                                    parent_realm_section.innerHTML = "";
-
-                                    if (element.value == 2) {
-                                        document.getElementById('add-realm').style.display = 'block';
-                                        realm_detail_box.style.display = "flex";
-                                        create_new_realm();
-                                    } else{
-                                        document.getElementById('add-realm').style.display = 'none';
-                                        realm_detail_box.style.display = "flex";
-                                        create_new_realm();
-                                    }
-                                }
-                                
-                                function add_new_realm(){
-                                    create_new_realm();
-                                }
-                            </script>
-        
                
 
 
@@ -366,22 +271,6 @@
                                     </fieldset>
                                 </div>
                             </div>
-
-                            <!-- Guild detail visibility -->
-                            <script>
-                                let is_visibale = false;
-
-                                function show_guild_detail(){
-                                    if (is_visibale == false)
-                                    {
-                                        document.getElementById('guild_detail_box').style.display = 'block';
-                                        is_visibale = true;
-                                    }else{
-                                        document.getElementById('guild_detail_box').style.display = 'none';
-                                        is_visibale = false;
-                                    }
-                                }
-                            </script>
 
 
                             <hr>
@@ -552,6 +441,120 @@
         </div>
     </div>
 </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+
+        <!-- In multi realm method: show panel for add and remove realm -->
+    <script>
+        //realm item counter
+        let realm_object_counter = 0;
+
+        //div parent
+        const parent_realm_section = document.getElementById('parent-realm-detail');
+        let realm_detail_box = document.getElementById('select-realm-box');
+        realm_detail_box.style.display = 'flex';
+        document.getElementById('add-realm').style.display = 'none';
+
+        //Create realm item
+        function create_new_realm(){
+            
+            realm_object_counter ++;
+
+            let realm_section = document.createElement('div');
+            realm_section.className = 'col-md-6';
+
+            let realm_section_row = document.createElement('div');
+            realm_section_row.className = 'row';
+
+            realm_section_row.innerHTML = `
+                <div class="col col-md-6 col-sm-5 realm_box_${realm_object_counter}">
+                    <div class="">
+                        <select name="realm_${realm_object_counter}" id="realm_${realm_object_counter}" class="select-custom-style form-select">
+                            <option value="0">Realm</option>
+                            {% if realms %}
+                                {% for realm in realms %}
+                                <option value="{{realm.id}}">{{realm.name}}</option>
+                                {% endfor %}
+                            {% endif %}
+                        </select>
+                    </div>
+                </div>
+        
+                <div class="col col-sm-4 col-md-4 realm_box_${realm_object_counter}">
+                    <div class="">
+                        <input type="number" placeholder="Amount: no separator" name="realm_amount_${realm_object_counter}" id="realm_amount_${realm_object_counter}" class="form-control">
+                    </div>
+                </div> 
+            `;
+            
+            //delete realm button
+            const delete_realm_btn = document.createElement('button');
+            delete_realm_btn.setAttribute('type', 'button');
+            delete_realm_btn.className = "color-white-important center-icon-text center-r-c btn btn-danger delete_realm";
+            delete_realm_btn.innerHTML = '<span class="material-symbols-outlined">delete</span>';
+            
+            delete_realm_btn.addEventListener('click', function(){
+                parent_realm_section.removeChild(realm_section);
+            });
+
+            const delete_realm_btn_box_mb_class = document.createElement('div');
+            delete_realm_btn_box_mb_class.className = "mb-3";
+
+            const delete_realm_btn_box = document.createElement('div');
+            delete_realm_btn_box.className = `col col-sm-3 col-md-2 realm_box_${realm_object_counter}`;
+            
+            delete_realm_btn_box_mb_class.appendChild(delete_realm_btn);
+            delete_realm_btn_box.appendChild(delete_realm_btn_box_mb_class);
+            realm_section_row.appendChild(delete_realm_btn_box)
+
+            realm_section.appendChild(realm_section_row);
+
+            //add to parent div
+            parent_realm_section.appendChild(realm_section);
+        }
+        
+
+        create_new_realm();
+
+        //ever realm method was changed: (realms visibility) 
+        function roletypechange(){
+            let element = document.getElementById('realm-method-select');
+            let realm_detail_box = document.getElementById('select-realm-box');
+            parent_realm_section.innerHTML = "";
+
+            if (element.value == 2) {
+                document.getElementById('add-realm').style.display = 'block';
+                realm_detail_box.style.display = "flex";
+                create_new_realm();
+            } else{
+                document.getElementById('add-realm').style.display = 'none';
+                realm_detail_box.style.display = "flex";
+                create_new_realm();
+            }
+        }
+        
+        function add_new_realm(){
+            create_new_realm();
+        }
+    </script>
+
+
+    <!-- Guild detail visibility -->
+    <script>
+        let is_visibale = false;
+
+        function show_guild_detail(){
+            if (is_visibale == false)
+            {
+                document.getElementById('guild_detail_box').style.display = 'block';
+                is_visibale = true;
+            }else{
+                document.getElementById('guild_detail_box').style.display = 'none';
+                is_visibale = false;
+            }
+        }
+    </script>
+
 
 
     <script>
