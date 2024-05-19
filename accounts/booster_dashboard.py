@@ -1,7 +1,7 @@
 from .models import User, Alt, Realm, TeamDetail, TeamRequest, Wallet, Transaction, Notifications, Team, InviteMember, RemoveAltRequest, Debt, Loan, CardDetail
 from gamesplayed.models import Attendance, CutInIR, AttendanceDetail, Payment, Cycle
 from .forms import UpdateProfileForm, CardDetailForm
-from gamesplayed.models import CutInIR, Cycle, RunType
+from gamesplayed.models import CutInIR, Cycle, CutDistributaion
 from django.db.models import Sum
 from django.utils import timezone
 from django.db.models import Q
@@ -10,7 +10,7 @@ from datetime import timedelta
 import math
 
 def cycle_payments():
-    payments_history = Payment.objects.filter(is_paid=True).order_by('-paid_date')[0:20]
+    payments_history = Payment.objects.filter(is_paid=True).order_by('-paid_date')[0:100]
 
     return payments_history
 
@@ -19,6 +19,42 @@ def cycle_unpaid():
 
     return unpaid
 
+
+class CycleFinancial:
+
+    def close():
+        cycles = Cycle.objects.filter(status="C").order_by("-start_date")[0:12]
+        objects = list()
+
+        for cc in cycles:
+            query = Attendance.objects.filter(cycle=cc).aggregate(Sum('total_pot'))['total_pot__sum']
+            
+            if query == None:
+                query = 0
+              
+            objects.append({
+                "cycle" : cc,
+                "total" : query
+            })
+
+        return objects
+
+    def open():
+        cycles = Cycle.objects.filter(status="O")
+        objects = list()
+
+        for cc in cycles:
+            query = Attendance.objects.filter(cycle=cc).aggregate(Sum('total_pot'))['total_pot__sum']
+
+            if query == None:
+                query = 0
+                
+            objects.append({
+                "cycle" : cc,
+                "total" : query
+            })
+
+        return objects
 
 
 def cycle():
@@ -168,6 +204,11 @@ def unseen_notif_badge(pk):
 def attendance_admin():
     attendances = Attendance.objects.filter().order_by('-date_time')
     return attendances
+
+
+def cut_dist():
+    objects = CutDistributaion.objects.filter().order_by('-attendance__date_time')
+    return objects
 
 
 

@@ -1081,8 +1081,8 @@
 
                 let players = char_names.value.split(',');
                 for (character of players){
-                    let alt = character.split('-')[0];
-                    let realm = character.split('-')[1];
+                    let alt = character.split('-')[0].toLowerCase();
+                    let realm = character.split('-')[1].toLowerCase();
 
 
                     if ( ((alt === undefined) || (realm === undefined)) || ((alt === "") || (realm === "")) ){

@@ -17,50 +17,60 @@ class CyclePayment(View):
             if request.user.is_authenticated:
                 if request.user.is_superuser:
                     print(request.POST)
+                    
                     try:
+
+                        #try get is_update value if not exist then except block executed
                         is_update = request.POST['update']
+
+
                         wallet_fail = False
                         wallet_fail_list = list()
 
                         insufficient_balance = False
                         insufficient_balance_list = list()
-
                         for item in request.POST.keys():
-                            if item.isnumeric():
-                                try:
-                                    obj = Payment.objects.get(id=item)
+                            if item.isnumeric() or ("_" in item):
+                                if "_" in item:
+                                    list_ids = item.split("_")
+                                else:
+                                    list_ids = [item]
 
-                                    if obj.detail.player:
-                                        wallet = Wallet.objects.get(player=obj.detail.player)
-                                        if wallet.amount < int(obj.detail.cut):
-                                            insufficient_balance = True
-                                            insufficient_balance_list.append(obj.detail.player.username)
-                                            obj.is_paid = False
-                                            obj.save()
+                                for id in list_ids:
+                                    try:
+                                        obj = Payment.objects.get(id=id)
+
+                                        if obj.detail.player:
+                                            wallet = Wallet.objects.get(player=obj.detail.player)
+                                            if wallet.amount < int(obj.detail.cut):
+                                                insufficient_balance = True
+                                                insufficient_balance_list.append(obj.detail.player.username)
+                                                obj.is_paid = False
+                                                obj.save()
+                                            else:
+                                                wallet.amount -= int(obj.detail.cut)
+                                                wallet.save()
+                                                obj.is_paid = True
+                                                obj.paid_date = datetime.datetime.now()
+                                                obj.save()
+
+                                                character = None
+
+                                                if obj.detail.payment_character:
+                                                    character = obj.detail.payment_character
+                                                elif obj.detail.alt:
+                                                    character = obj.detail.alt
+
+
+                                                Transaction.objects.create(requester=obj.detail.player, status='PAID', paid_date=datetime.datetime.now(), amount=obj.detail.cut, currency='CUT', alt=character, caption="---Cycle---")
                                         else:
-                                            wallet.amount -= int(obj.detail.cut)
-                                            wallet.save()
-                                            obj.is_paid = True
+                                            wallet_fail = True
+                                            wallet_fail_list.append(obj.detail.alt)
                                             obj.paid_date = datetime.datetime.now()
+                                            obj.is_paid = True
                                             obj.save()
-
-                                            character = None
-
-                                            if obj.detail.payment_character:
-                                                character = obj.detail.payment_character
-                                            elif obj.detail.alt:
-                                                character = obj.detail.alt
-
-
-                                            Transaction.objects.create(requester=obj.detail.player, status='PAID', paid_date=datetime.datetime.now(), amount=obj.detail.cut, currency='CUT', alt=character, caption="---Cycle---")
-                                    else:
-                                        wallet_fail = True
-                                        wallet_fail_list.append(obj.detail.alt)
-                                        obj.paid_date = datetime.datetime.now()
-                                        obj.is_paid = True
-                                        obj.save()
-                                except:
-                                    pass
+                                    except:
+                                        pass
 
                                     
                             
@@ -72,23 +82,33 @@ class CyclePayment(View):
 
                         messages.add_message(request, messages.SUCCESS, "Changes saved!")
                         return redirect(reverse('dashboard') + "?tab=cycle-payments")
-                    
 
                     except:
+
+
                         try:
                             is_delete = request.POST['delete']
                         except:
                             messages.add_message(request, messages.ERROR, "Something went wrong!")
                             return redirect(reverse('dashboard') + "?tab=cycle-payments")
                         else:
+
+                            #Deleted item
                             counter = 0
                             for item in request.POST.keys():
-                                if item.isnumeric():
-                                    #try:
-                                        Payment.objects.get(id=item).delete()
+                                if (item.isnumeric()) or ("_" in item):
+                                    try:
+                                        if "_" in item:
+                                            list_ids = item.split("_")
+                                        else:
+                                            list_ids = [item]
+
+                                        for id in list_ids:
+                                            Payment.objects.get(id=id).delete()
+
                                         counter += 1
-                                    #except:
-                                    #    pass
+                                    except:
+                                        pass
 
                             messages.add_message(request, messages.SUCCESS, f"{counter} cp were deleted!")
                             return redirect(reverse('dashboard') + "?tab=cycle-payments")
@@ -99,6 +119,7 @@ class CyclePayment(View):
 
             messages.add_message(request, messages.WARNING, 'You are not allowed to do this!')
             return redirect('dashboard')
+
         except:
             messages.add_message(request, messages.ERROR, 'Something went wrong!')
             return redirect(reverse('dashboard') + "?tab=cycle-payments")            
@@ -200,7 +221,7 @@ class ViewAttendance(View):
             guild.gold_collector = request.POST['guild_gold_collector']
             guild.booster = request.POST['guild_booster']
             guild.guild_bank = request.POST['guild_bank']
-            attendance.characters_name = request.POST['character_names']
+            attendance.characters_name = request.POST['character_names'].lower()
             attendance.run_notes = request.POST['run_note']
 
             #Save financial data
@@ -208,6 +229,7 @@ class ViewAttendance(View):
             cut_dist.save()
             attendance.save()
             guild.save()
+
                 #Check the correctness of the entered data
             if ((not guild_in_house_customer_pot) or (not guild_in_house_customer_pot.isdigit())):
                 guild_in_house_customer_pot = 0
@@ -462,7 +484,7 @@ class CreateAttendance(View):
                 guild_gold_collector = request.POST['guild_gold_collector']
                 guild_booster = request.POST['guild_booster']
                 guild_bank = request.POST['guild_bank']
-                character_names = request.POST['character_names']
+                character_names = request.POST['character_names'].lower()
                 run_note = request.POST['run_note']
 
 

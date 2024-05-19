@@ -235,8 +235,13 @@
                         {% if not is_user %}
 
                         {% if has_perm_view_attendance_admin %}
+
+
+
                         <!-- New attendance -->
                         <div class="tab-pane {% if tab == 'new-attendance' %}show active{% endif %} fade dashboard-detail" id="pills-new-attendance" role="tabpanel" aria-labelledby="pills-new-attendance-tab" tabindex="0">
+                           
+                           
                             <div class="row">
                                 <div class="col">
                                     <div class="dashboard-detail-item">
@@ -286,6 +291,63 @@
                                             <p class="min-height-200 center-r-c"><span class="material-symbols-outlined color-red">
                                             close
                                             </span>There aren't any attendance
+                                            </p>
+                                        {% endif %}
+                                        
+                                    </div>
+                                </div>
+                            </div>
+
+
+
+
+                            
+                            <div class="row">
+                                <div class="col">
+                                    <div class="dashboard-detail-item from-top-25">
+                                        <div class="flex-between">
+                                            <p class="center-icon-text">
+                                                <span class="material-symbols-outlined">
+                                                    info
+                                                    </span>&nbsp;Quick info
+                                            </p>
+                                        </div>
+                                        <hr>
+
+                                        {% if cut_dist %}
+                                            <div class="table-responsive">
+                                                <table class="table">
+                                                        {% csrf_token %}
+                                                        <thead>
+                                                            <th class="bg-transparent color-white-important">Created</th>
+                                                            <th class="bg-transparent color-white-important">Total Pot</th>
+                                                            <th class="bg-transparent color-white-important">Community</th>
+                                                            <th class="bg-transparent color-white-important">Guild</th>
+                                                            <th class="bg-transparent color-white-important">Boosters</th>
+                                                            <th class="bg-transparent color-white-important">Gold collector</th>
+                                                            <th class="bg-transparent color-white-important">Guild bank</th>
+                                                        </thead>
+                                                        <tbody>
+                                                            
+                                                                {% for item in cut_dist %}
+                                                                    <tr>
+                                                                        <td class="bg-transparent color-white-important"><a href="{% url 'view_attendance' item.attendance.id %}" class="pink-link">{{item.attendance.date_time|date:"Y-m-d H:i"}}</a></td>
+                                                                        <td class="bg-transparent color-white-important attendance_total_pot">{{item.attendance.total_pot}}</td>
+                                                                        <td class="bg-transparent color-white-important attendance_total_pot">{{item.community}}</td>
+                                                                        <td class="bg-transparent color-white-important attendance_total_pot">{{item.total_guild.total}}</td>
+                                                                        <td class="bg-transparent color-white-important attendance_total_pot">{{item.total_guild.booster}}</td>
+                                                                        <td class="bg-transparent color-white-important attendance_total_pot">{{item.total_guild.gold_collector}}</td>
+                                                                        <td class="bg-transparent color-white-important attendance_total_pot">{{item.total_guild.guild_bank}}</td>
+                                                                    </tr>
+                                                            {% endfor %}
+                                                        </tbody>                                      
+                                                </table>
+                                            </div>
+
+                                        {% else %}
+                                            <p class="min-height-200 center-r-c"><span class="material-symbols-outlined color-red">
+                                            close
+                                            </span>There aren't any attendance information
                                             </p>
                                         {% endif %}
                                         
@@ -354,12 +416,16 @@
                                                         <th class="bg-transparent color-white-important"><span class="material-symbols-outlined">
                                                             robot
                                                             </span></th>
-                                                        <th class="bg-transparent color-white-important"><span class="material-symbols-outlined">
+                                                        
+                                                        <th class="bg-transparent color-white-important"><div class="flex-row justify-content-center align-items-center without-margin padding-8"><span class="material-symbols-outlined">
                                                             done_all
-                                                            </span></th>
+                                                            </span>&nbsp;&nbsp;&nbsp; <input class="form-check-input padding-5" type="checkbox" id="select_all_paid_status" ></div></th>
                                                     </thead>
+
+
+
                                                     <tbody id="cy_unpaid_parent">
-                                                {% for cp in cycle_unpaid %}
+                                                <!--{% for cp in cycle_unpaid %}
                                                         <tr>
                                                             <td class="bg-transparent color-white-important"><a href="#" class="pink-link">{% if cp.detail.player %}{{cp.detail.player}}{% else %}-{% endif %}</a></td>
                                                             <td class="bg-transparent color-white-important" id="cp_string_{{cp.id}}">{{cp.string}}</td>
@@ -367,13 +433,22 @@
                                                             <td class="bg-transparent color-white-important unit_per_thousand">{{cp.detail.cut}}</td>
                                                             <td class="bg-transparent color-white-important attendance_total_pot">{% if cp.detail.payment_character %} {{cp.detail.payment_character}} {% elif cp.detail.alt %} {{cp.detail.alt}} {% endif %} </td>
                                                             <td class="bg-transparent color-white-important">
-                                                                <div class="form-check">
+                                                                <div class="form-check flex-row justify-content-center">
                                                                     <input class="form-check-input padding-5 is_paid_status" type="checkbox" name="{{cp.id}}" id="paid_status_{{cp.id}}" {% if cp.is_paid %}checked{% endif %}>
                                                                 </div>
                                                             </td>
                                                         </tr>
-                                                {% endfor %}
-                                                    </tbody>                                      
+                                                {% endfor %}-->
+
+                                            </tbody>  
+                                            
+                                            
+
+
+
+
+
+
                                                 </table>
                                             </div>
                                         </form>
@@ -389,6 +464,114 @@
                             </div>
                             
 
+
+
+                            <!-- Unpaid cycle info -->
+                            <div class="row from-top-25">
+                                <div class="col">
+                                    <div class="row">
+                                        <div class="col">
+                                            <div class="dashboard-detail-item">
+
+
+                                                <div class="row">
+                                                    <p class="center-icon-text">
+                                                        <span class="material-symbols-outlined">
+                                                            radio_button_checked
+                                                            </span>&nbsp;Cycle info (Active)
+                                                    </p>
+                                                </div>
+
+
+
+                                                <hr>
+
+
+
+                                                {% if cycle_open_info %}
+                                                    {% csrf_token %}
+                                                    
+                                                        <table class="table">
+                                                            <tbody>
+                                                        {% for item in cycle_open_info %}
+                                                                <tr>
+                                                                    <td class="bg-transparent color-white-important">{{item.cycle}}</a></td>
+                                                                    <td class="bg-transparent color-white-important unit_per_thousand">{{item.total}}</td>
+                                                                </tr>
+                                                        {% endfor %}
+
+                                                            </tbody>  
+
+                                                        </table>
+                                                {% else %}
+                                                    <p class="min-height-200 center-r-c"><span class="material-symbols-outlined color-red">
+                                                    close
+                                                    </span>Nothing to show
+                                                    </p>
+                                                {% endif %}
+
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            
+                            
+                                <div class="col">
+                                    <div class="row">
+                                        <div class="col">
+                                            <div class="dashboard-detail-item">
+                                                <div class="row">
+                                                    <div class="col">
+                                                        <p class="center-icon-text">
+                                                            <span class="material-symbols-outlined">
+                                                                task_alt
+                                                                </span>&nbsp; Cycle info (Closed)
+                                                        </p>
+                                                    </div>
+                                                </div>
+
+
+                                      
+                                                <hr>
+
+
+
+                                                {% if cycle_closed_info %}
+                                                    {% csrf_token %}
+                                                    
+                                                        <table class="table">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th class="bg-transparent color-white-important">Cycle</th>
+                                                                    <th class="bg-transparent color-white-important">Total</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                        {% for item in cycle_closed_info %}
+                                                                <tr>
+                                                                    <td class="bg-transparent color-white-important">{{item.cycle}}</a></td>
+                                                                    <td class="bg-transparent color-white-important unit_per_thousand">{{item.total}}</td>
+                                                                </tr>
+                                                        {% endfor %}
+
+                                                            </tbody>  
+
+                                                        </table>
+                                                {% else %}
+                                                    <p class="min-height-200 center-r-c"><span class="material-symbols-outlined color-red">
+                                                    close
+                                                    </span>Nothing to show
+                                                    </p>
+                                                {% endif %}
+
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
 
 
                             <!-- History -->
@@ -424,29 +607,29 @@
                                                         <th class="bg-transparent color-white-important"><span class="material-symbols-outlined">
                                                             mark_email_unread
                                                             </span></th>
-                                                        {% if cp.paid_date %}<th class="bg-transparent color-white-important"><span class="material-symbols-outlined">
+                                                        <th class="bg-transparent color-white-important"><span class="material-symbols-outlined">
                                                             event_available
-                                                            </span></th>{% endif %}                                                     
+                                                            </span></th>                                                   
                                                         <th class="bg-transparent color-white-important"><span class="material-symbols-outlined">
                                                             monetization_on
                                                             </span></th>
                                                         <th class="bg-transparent color-white-important"><span class="material-symbols-outlined">
                                                             robot
                                                             </span></th>
-                                                        <th class="bg-transparent color-white-important"><span class="material-symbols-outlined">
+                                                        <th class="bg-transparent color-white-important"><div class="flex-row justify-content-center padding-8"><span class="material-symbols-outlined">
                                                             done_all
-                                                            </span></th>
+                                                            </span></div></th>
                                                     </thead>
                                                     <tbody>
                                                 {% for cp in cycle_payments %}
                                                         <tr>
                                                             <td class="bg-transparent color-white-important"><a href="#" class="pink-link">{% if cp.detail.player %}{{cp.detail.player}}{% else %}-{% endif %}</a></td>
                                                             <td class="bg-transparent color-white-important">{{cp.string}}</td>
-                                                            {% if cp.paid_date %}<td class="bg-transparent color-white-important">{{cp.paid_date|date:"Y-m-d"}}</td>{% endif %}
+                                                            <td class="bg-transparent color-white-important">{% if cp.paid_date %}{{cp.paid_date|date:"Y-m-d"}}{% endif %}</td>
                                                             <td class="bg-transparent color-white-important unit_per_thousand">{{cp.detail.cut}}</td>
                                                             <td class="bg-transparent color-white-important attendance_total_pot">{% if cp.detail.payment_character %} {{cp.detail.payment_character}} {% elif cp.detail.alt %} {{cp.detail.alt}} {% endif %} </td>
                                                             <td class="bg-transparent color-white-important">
-                                                                <div class="form-check">
+                                                                <div class="form-check flex-row justify-content-center">
                                                                     <input class="form-check-input padding-5" type="checkbox"{% if cp.is_paid %}checked{% endif %} disabled >
                                                                 </div>
                                                             </td>
@@ -466,6 +649,12 @@
                                     </div>
                                 </div>
                             </div>
+
+
+
+
+
+
                         </div>
                         
                         
@@ -1791,6 +1980,27 @@
 
 
               <script>
+                check_box_select_all = document.getElementById("select_all_paid_status");
+                
+                check_box_select_all.addEventListener('change', (event) => {
+                    checkboxes = document.getElementsByClassName("is_paid_status");
+                    if (checkboxes){
+                        if (event.currentTarget.checked) {
+                                for(item of checkboxes){
+                                    item.checked = true;
+                                }
+                        } else {
+                            checkboxes = document.getElementsByClassName("is_paid_status");
+                                for(item of checkboxes){
+                                    item.checked = false;
+                                }
+                        }
+                    }
+
+                  })
+                  
+                  
+                  
                 pay_chars = document.getElementsByClassName("payment_character");
 
                 for (item of pay_chars){
@@ -1838,6 +2048,197 @@
 
             </script>
 
+            <!-- Cycle payments handeled -->
+            <script>
+                const cp_id_players = [];
+                const cp_players = [];
+                const cp_id_alts = [];
+                const cp_alts = [];
+
+                //In this loop, we unite every booster who has multiple strings
+                {% for cp in cycle_unpaid %}
+                    {% if cp.detail.player %}
+                        if (cp_id_players.includes("{{cp.detail.player.username}}")){
+                            for (let item of cp_players){
+                                if (Object.keys(item)[0] == "{{cp.detail.player.username}}"){
+                                    item["{{cp.detail.player.username}}"]["cut"] += parseInt("{{cp.detail.cut}}");
+                                    if (item["{{cp.detail.player.username}}"]["string"] == "None"){
+                                        item["{{cp.detail.player.username}}"]["string"] = "{{cp.detail.alt}}";
+                                    }
+
+                                    item["{{cp.detail.player.username}}"]["detail"].push({
+                                        "id" : "{{cp.id}}",
+                                        "cut" : parseInt("{{cp.detail.cut}}"),
+                                        "alt" : "{{cp.detail.alt}}",
+                                        "string" : "{{cp.string}}" 
+                                    });
+                                    break;
+                                }
+                            }
+                        }else{
+                            cp_id_players.push("{{cp.detail.player.username}}");
+                            cp_players.push(
+                                {
+                                "{{cp.detail.player.username}}" : 
+                                    {
+                                    "cut" : parseInt("{{cp.detail.cut}}"),
+                                    "string" : "{{cp.detail.alt}}", 
+                                    "detail" : [{
+                                        "id" : "{{cp.id}}",
+                                        "cut" : parseInt("{{cp.detail.cut}}"),
+                                        "alt" : "{{cp.detail.alt}}",
+                                        "string" : "{{cp.string}}"
+                                        }]
+                                    }
+                                }
+                            );
+                            
+                        }
+
+                    {% else %}
+                        if (cp_id_alts.includes("{{cp.detail.alt}}")){
+                            for (let object of cp_alts){
+                                if (Object.keys(object)[0] == "{{cp.detail.alt}}"){
+                                    object["{{cp.detail.alt}}"]["cut"] += parseInt("{{cp.detail.cut}}");
+
+                                    if (object["{{cp.detail.alt}}"]["string"] == "None"){
+                                        object["{{cp.detail.alt}}"]["string"] = "{{cp.detail.alt}}";
+                                    }
+
+                                    object["{{cp.detail.alt}}"]["detail"].push({
+                                        "id" : "{{cp.id}}",
+                                        "cut" : parseInt("{{cp.detail.cut}}"),
+                                        "alt" : "{{cp.detail.alt}}",
+                                        "string" : "{{cp.string}}" 
+                                    });
+                                    break;
+                                }
+                            }
+                        }else{
+                            cp_id_alts.push("{{cp.detail.alt}}");
+                            cp_alts.push({
+                                "{{cp.detail.alt}}": 
+                                    {
+                                        "cut" : parseInt("{{cp.detail.cut}}"),
+                                        "string" : "{{cp.detail.alt}}", 
+                                        "detail" : [{
+                                            "id" : "{{cp.id}}",
+                                            "cut" : parseInt("{{cp.detail.cut}}"),
+                                            "alt" : "{{cp.detail.alt}}",
+                                            "string" : "{{cp.string}}"
+                                        }]
+                                    } 
+                            });
+                        }
+                    {% endif %}
+                {% endfor %}
+
+
+
+                tbody_cp = document.getElementById("cy_unpaid_parent");
+                let counter = 0;
+
+                for (let item of cp_players){
+                    let tr = document.createElement("tr");
+                    let td_username = document.createElement("td");
+                    let td_string = document.createElement("td");
+                    let td_cut = document.createElement("td");
+                    let td_alt = document.createElement("td");
+                    let td_checkbox = document.createElement("td");
+
+
+                    let values = Object.values(item)[0];
+                    td_username.innerText = Object.keys(item)[0];
+                    td_cut.innerText = values["cut"];
+                    td_cut.setAttribute("class", "unit_per_thousand bg-transparent color-white-important");
+                    td_username.setAttribute("class", "bg-transparent color-white-important");
+                    td_string.setAttribute("class", "bg-transparent color-white-important");
+                    td_alt.setAttribute("class", "bg-transparent color-white-important");
+                    td_checkbox.setAttribute("class", "bg-transparent color-white-important");
+
+                    
+                    td_string.innerText = `${values["string"]}:${values["cut"]}:Wixana.ir`;
+                    td_string.setAttribute("id", "cp_string_" + counter);
+                    td_alt.innerText = values["string"];
+                    let cp_checkbox = document.createElement("input");
+                    cp_checkbox.setAttribute("type", "checkbox");
+                    cp_checkbox.setAttribute("id", "paid_status_" + counter);
+                    
+                    let cp_ids = "";
+                    
+                    for (let id of values['detail']){
+                        cp_ids += id["id"] + "_";
+                    }
+                    cp_ids = cp_ids.slice(0, -1);
+
+                    
+                    cp_checkbox.setAttribute("name", cp_ids);
+                    cp_checkbox.setAttribute("class", "form-check-input padding-5 is_paid_status");
+                    counter++;
+                    td_checkbox.appendChild(cp_checkbox);
+
+                    tr.appendChild(td_username);
+                    tr.appendChild(td_cut);
+                    tr.appendChild(td_string);
+                    tr.appendChild(td_alt);
+                    tr.appendChild(td_checkbox);
+
+                    tbody_cp.appendChild(tr);
+                }
+
+                
+                for (let item of cp_alts){
+                    let tr = document.createElement("tr");
+                    let td_username = document.createElement("td");
+                    let td_string = document.createElement("td");
+                    let td_cut = document.createElement("td");
+                    let td_alt = document.createElement("td");
+                    let td_checkbox = document.createElement("td");
+
+
+                    let values = Object.values(item)[0];
+                    td_username.innerText = Object.keys(item)[0];
+                    td_cut.innerText = values["cut"];
+                    td_cut.setAttribute("class", "unit_per_thousand bg-transparent color-white-important");
+                    td_username.setAttribute("class", "bg-transparent color-white-important");
+                    td_string.setAttribute("class", "bg-transparent color-white-important");
+                    td_alt.setAttribute("class", "bg-transparent color-white-important");
+                    td_checkbox.setAttribute("class", "bg-transparent color-white-important");
+
+                    td_string.innerText = `${values["string"]}:${values["cut"]}:Wixana.ir`;
+                    td_string.setAttribute("id", "cp_string_" + counter);
+
+                    td_alt.innerText = values["string"];
+                    let cp_checkbox = document.createElement("input");
+                    cp_checkbox.setAttribute("type", "checkbox");
+                    cp_checkbox.setAttribute("id", "paid_status_" + counter);
+                    let cp_ids = "";
+
+                    for (let id of values['detail']){
+                        cp_ids += id["id"] + "_";
+                    }
+                    cp_ids = cp_ids.slice(0, -1);
+
+                    cp_checkbox.setAttribute("name", cp_ids);
+                    cp_checkbox.setAttribute("class", "form-check-input padding-5 is_paid_status");
+
+                    counter++;
+                    td_checkbox.appendChild(cp_checkbox);
+
+                    tr.appendChild(td_username);
+                    tr.appendChild(td_cut);
+                    tr.appendChild(td_string);
+                    tr.appendChild(td_alt);
+                    tr.appendChild(td_checkbox);
+
+                    tbody_cp.appendChild(tr);
+                }
+                console.log("players: ",cp_players);
+                console.log("alts: ", cp_alts);
+
+
+
+            </script>
 
             <script>
                 let fields = document.getElementsByClassName('attendance_total_pot');
@@ -2129,19 +2530,25 @@
             <script>
 
                 function get_string(){
-                    var cb = document.getElementsByClassName("is_paid_status");
-                    var string = "";
-                    var is_checked = false;
+                    let cb = document.getElementsByClassName("is_paid_status");
+                    let string = "";
+                    let is_checked = false;
                     
                     for (let item of cb ){
                         if (item.checked == true){
                             is_checked = true;
                             let id = item.getAttribute('id');
+                            console.log(id);
                             id = id.split('_')[2];
-                            var cp_string = document.getElementById("cp_string_" + id);
-                            var len_string = cp_string.innerText.length;
+                            console.log(id);
+
+                            let cp_string = document.getElementById("cp_string_" + id);
+                            console.log(cp_string);
+                            let len_string = cp_string.innerText.length;
                             if (len_string > 0){
                                 string += cp_string.innerText + ",\n";
+                                console.log(string);
+
                             }
                         }
                     }
@@ -2180,7 +2587,9 @@
                 //change unit amount to thousand
                 var change_unit = document.getElementsByClassName("unit_per_thousand");
                 for (let item of change_unit){
-                    item.innerText = (item.innerText / 1000) + " K";
+                    if (item.innerText != "0"){
+                        item.innerText = (item.innerText / 1000) + " K";
+                    }
                 }
 
 

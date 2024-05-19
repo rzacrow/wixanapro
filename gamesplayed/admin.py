@@ -237,6 +237,7 @@ class CycleAdmin(ModelAdmin):
                                             pass
                                     at.paid_status = True                                    
                             at.save()
+
                         if boosters:
                             for booster in boosters:
                                 string = ""
@@ -246,6 +247,12 @@ class CycleAdmin(ModelAdmin):
                                     string = f"{booster.alt}:{booster.cut}:Wixana.ir"
 
                                 Payment.objects.create(cycle=obj, detail=booster, string=string)
+
+
+
+
+
+
 
     @admin.action(description="Change to 'Close'")
     def change_status_to_close(self, request, queryset):
@@ -260,8 +267,11 @@ class CycleAdmin(ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         if 'status' in form.changed_data:
+            print(obj.status)
             if obj.status == 'C':
                 self.closed_status(request=request, objects=[obj])
+
+
         super().save_model(request, obj, form, change)
 
 

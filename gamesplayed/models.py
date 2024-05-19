@@ -151,6 +151,10 @@ class Payment(models.Model):
     string = models.CharField(max_length=256, blank=True, null=True)
     paid_date = models.DateTimeField(blank=True, null=True)
     detail = models.ForeignKey(AttendanceDetail, on_delete=models.CASCADE, blank=True, null=True)
+    
+
+
+
 
 class SpecificTime(models.Model):
     time = models.TimeField()

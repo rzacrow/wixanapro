@@ -337,6 +337,9 @@ a:hover, .nav-link:hover{
 .back-color-fit{
     width: 100%; min-height: 100vh; display: flex; align-items: center; justify-content: center; background-image: linear-gradient(#331b24, #111111);
 }
+.max-width-800{
+    max-width: 800px !important;
+}
 .blue-bg-color{
     background-image: linear-gradient(120deg, #f093fb 0%, #f5576c 100%);
 }
@@ -573,8 +576,17 @@ select{
         margin-top: 25px;
     }
     #v-pills-tab{
-        overflow-x: scroll !important; flex-wrap: nowrap !important; max-width: 360px;
+        overflow-x: scroll !important; flex-wrap: nowrap !important; max-width: 400px;
     }
+    #v-pills-tab{
+        overflow: auto;
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;  /* Firefox */
+      }
+      #v-pills-tab::-webkit-scrollbar {
+        display: none;
+    }
+
     .padding-25-mobile{
         padding: 25px;
     }
@@ -967,3 +979,8 @@ p:has(> .form-label){
     from {bottom: 30px; opacity: 1;}
     to {bottom: 0; opacity: 0;}
   }
+
+
+.padding-8{
+    padding: 8px;
+}
